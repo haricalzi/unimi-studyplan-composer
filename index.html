@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Composizione Piano di Studi</title>
-    <!-- <link rel="stylesheet" href="css/style.css" /> -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -65,9 +64,8 @@
       }
     </style>
   </head>
-  <body class="h-screen overflow-hidden text-slate-800 antialiased selection:bg-primary/20 selection:text-primary">
-    <div id="app" class="h-full flex flex-col">
-      <!-- Loading Overlay -->
+  <body class="md:h-screen md:overflow-hidden min-h-screen text-slate-800 antialiased selection:bg-primary/20 selection:text-primary">
+    <div id="app" class="md:h-full flex flex-col">
       <div v-if="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/80 backdrop-blur-sm p-4 transition-all">
         <div class="glass p-10 rounded-3xl text-center max-w-sm w-full animate-pulse">
           <div class="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
@@ -75,7 +73,6 @@
         </div>
       </div>
 
-      <!-- Main Layout -->
       <div v-else class="flex flex-col h-full relative">
         <header class="flex-none z-40 shadow-sm">
           <div class="bg-yellow-50/90 backdrop-blur-sm border-b border-yellow-100 text-yellow-800 px-4 py-3 text-sm flex flex-wrap items-center gap-3">
@@ -95,8 +92,7 @@
           </div>
         </header>
 
-        <main class="flex-1 flex overflow-hidden relative flex-col md:flex-row">
-          <!-- Configuration Overlay -->
+        <main class="flex-1 flex md:overflow-hidden relative flex-col md:flex-row">
           <div v-if="!initialized" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/60 backdrop-blur-md p-4">
             <div class="glass max-w-lg w-full p-8 rounded-3xl shadow-2xl transform transition-all hover:scale-[1.01]">
               <div class="text-center mb-8">
@@ -149,12 +145,9 @@
             </div>
           </div>
 
-          <!-- App Body -->
           <div v-else class="flex flex-col md:flex-row w-full h-full">
-            <!-- Sidebar -->
-            <aside class="w-full md:w-96 flex-none bg-white/60 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 flex flex-col h-2/5 md:h-full z-20 shadow-lg md:shadow-none">
-              <div class="p-6 overflow-y-auto custom-scrollbar h-full">
-                <!-- Stats Panel -->
+            <aside class="w-full md:w-96 flex-none bg-white/60 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 flex flex-col h-auto md:h-full z-20 shadow-lg md:shadow-none">
+              <div class="p-6 md:overflow-y-auto custom-scrollbar md:h-full">
                 <div class="glass-panel p-5 rounded-2xl mb-6">
                   <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <i class="ph ph-chart-pie-slice text-primary"></i>
@@ -208,7 +201,6 @@
                   </div>
                 </div>
 
-                <!-- Buckets -->
                 <div class="space-y-4">
                   <div
                     v-for="table in sortedTables"
@@ -258,18 +250,6 @@
                               v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1"
                               class="relative"
                             >
-                              <!-- <select
-                                :value="item.table"
-                                @change="movePlanItem(item.id, $event.target.value)"
-                                class="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 rounded px-1 py-0.5 cursor-pointer hover:bg-blue-100 focus:outline-none"
-                              >
-                                <option
-                                  v-for="targetTable in getPossibleTables(item)"
-                                  :key="targetTable"
-                                  :value="targetTable"
-                                >
-                                  {{ t('move_to') }} {{ targetTable }}
-                                </option> -->
                               </select>
                             </div>
                           </div>
@@ -282,8 +262,7 @@
                           <i class="ph ph-trash"></i>
                         </button>
                       </div>
-                      <!-- <div v-if="groupedPlan[table].length === 0" class="text-xs text-slate-400 italic text-center py-2">{{ t('no_exam_selected') }}</div> -->
-                    </div>
+                      </div>
 
                     <div v-if="table === 'Facoltativi'" class="px-2 pb-2">
                       <details class="group/details border border-dashed border-slate-300 rounded-xl bg-slate-50/50 open:bg-white open:border-primary/30 open:shadow-sm transition-all">
@@ -314,8 +293,7 @@
               </div>
             </aside>
 
-            <!-- Matrix -->
-            <section class="flex-1 flex flex-col h-3/5 md:h-full overflow-hidden bg-slate-50/30">
+            <section class="flex-1 flex flex-col h-auto md:h-full md:overflow-hidden bg-slate-50/30">
               <div class="px-4 py-3 md:px-6 md:py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10 shadow-sm">
                 <div class="flex items-center gap-3">
                   <h1 class="text-lg md:text-xl font-bold text-slate-800 tracking-tight">{{ t('main_title') }}</h1>
@@ -363,7 +341,7 @@
                 </div>
               </div>
 
-              <div class="flex-1 overflow-auto bg-slate-200 gap-px grid grid-cols-[140px_repeat(3,minmax(200px,1fr))] md:grid-cols-[240px_repeat(3,1fr)] auto-rows-max">
+              <div class="overflow-x-auto md:flex-1 md:overflow-auto bg-slate-200 gap-px grid grid-cols-[140px_repeat(3,minmax(200px,1fr))] md:grid-cols-[240px_repeat(3,1fr)] auto-rows-max">
                 <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 left-0 z-40 text-center shadow-sm">{{ t('pillar_header') }}</div>
                 <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 z-30 text-center shadow-sm">{{ t('q1') }}</div>
                 <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 z-30 text-center shadow-sm">{{ t('q2') }}</div>
@@ -426,7 +404,6 @@
                           </div>
                         </div>
 
-                        <!-- Selected Indicator -->
                         <div v-if="getExamStatusClass(exam) === 'selected'" class="absolute -top-1 -right-1 bg-primary text-white rounded-full p-0.5 shadow-md">
                           <i class="ph ph-check text-xs"></i>
                         </div>

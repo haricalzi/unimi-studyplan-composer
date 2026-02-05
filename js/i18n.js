@@ -6,7 +6,7 @@ export const messages = {
     it: {
         // Header
         attention: "Attenzione",
-        disclaimer: "La disponibilità degli esami e le regole di composizione potrebbero essere inesatte. È sempre buona norma ricontrollare gli esami e le regole ufficiali sul",
+        disclaimer: "Le disponibilità degli esami potrebbero essere inesatte. È  consigliato ricontrollare gli esami e le regole ufficiali sul",
         ateneo_website: "sito web di Ateneo",
         disclaimer_suffix: "Questo tool è un supporto alla semplificazione e non sostituisce gli strumenti ufficiali.",
         
@@ -31,7 +31,7 @@ export const messages = {
         no_exam_selected: "Nessun esame selezionato.",
         
         // Matrix / Main
-        main_title: "Esami  |  Informatica Magistrale",
+        main_title: "Informatica Magistrale",
         search_placeholder: "Cerca esame per nome...",
         download_csv: "Scarica CSV",
         reset_title: "Resetta tutto",
@@ -77,7 +77,7 @@ export const messages = {
     en: {
         // Header
         attention: "Warning",
-        disclaimer: "Exam availability and composition rules might be inaccurate. It is always good practice to double-check official exams and rules on the",
+        disclaimer: "Exam availability might be inaccurate. It is always good practice to double-check official exams and rules on the",
         ateneo_website: "University website",
         disclaimer_suffix: "This tool is a support for simplification and does not replace official tools.",
         
@@ -102,13 +102,13 @@ export const messages = {
         no_exam_selected: "No exam selected.",
         
         // Matrix / Main
-        main_title: "Exams  |  Master Computer Science",
+        main_title: "Master's Degree in Computer Science",
         search_placeholder: "Search exam by name...",
         download_csv: "Download CSV",
         reset_title: "Reset all",
         reset: "Reset",
         configure: "Configure",
-        pillar_header: "Pillar / Subpillar",
+        pillar_header: "Subpillar",
         q1: "Term 1",
         q2: "Term 2",
         q3: "Term 3",
