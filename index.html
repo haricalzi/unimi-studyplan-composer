@@ -4,216 +4,308 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Composizione Piano di Studi</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <!-- <link rel="stylesheet" href="css/style.css" /> -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              primary: '#2563eb',
+              'primary-dark': '#1d4ed8',
+              secondary: '#475569',
+              bg: '#f8fafc',
+              surface: '#ffffff',
+              border: '#e2e8f0',
+              text: '#0f172a',
+              'text-light': '#64748b',
+              danger: '#ef4444',
+              success: '#22c55e',
+              warning: '#f59e0b',
+              'pillar-bg': '#f1f5f9',
+            }
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .glass {
+          @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-xl;
+        }
+        .glass-panel {
+          @apply bg-white/60 backdrop-blur-lg border border-white/30 shadow-sm;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          @apply bg-slate-300 rounded-full;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          @apply bg-slate-400;
+        }
+      }
+      body {
+        /* Background gradient for glassmorphism effect */
+        background: radial-gradient(circle at top left, #032f4d, #e4ecf1, #acd4fb);
+        background-attachment: fixed;
+      }
+    </style>
   </head>
-  <body>
-    <div id="app">
-      <div v-if="loading" class="onboarding-overlay">
-        <div class="onboarding-card">
-          <h2>{{ t('loading') }}</h2>
+  <body class="h-screen overflow-hidden text-slate-800 antialiased selection:bg-primary/20 selection:text-primary">
+    <div id="app" class="h-full flex flex-col">
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/80 backdrop-blur-sm p-4 transition-all">
+        <div class="glass p-10 rounded-3xl text-center max-w-sm w-full animate-pulse">
+          <div class="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 class="text-xl font-bold text-slate-700">{{ t('loading') }}</h2>
         </div>
       </div>
 
-      <div v-else class="main-layout">
-        <header class="app-header">
-          <div class="disclaimer-banner">
-            <i class="ph ph-warning-circle"></i>
-            <span>
+      <!-- Main Layout -->
+      <div v-else class="flex flex-col h-full relative">
+        <header class="flex-none z-40 shadow-sm">
+          <div class="bg-yellow-50/90 backdrop-blur-sm border-b border-yellow-100 text-yellow-800 px-4 py-3 text-sm flex flex-wrap items-center gap-3">
+            <i class="ph ph-warning-circle text-xl shrink-0"></i>
+            <span class="flex-1">
               <b>{{ t('attention') }}</b>: {{ t('disclaimer') }}
               <a
                 href="https://informatica-lm.cdl.unimi.it/it/insegnamenti/piano-didattico"
                 target="_blank"
+                class="text-primary font-bold hover:underline"
                 >{{ t('ateneo_website') }}</a
               >. {{ t('disclaimer_suffix') }}
             </span>
-            <button class="btn-outline" style="margin-left: auto; padding: 0.2rem 0.5rem; font-size: 0.75rem;" @click="toggleLang">
+            <button class="ml-auto px-3 py-1 text-xs font-bold border border-yellow-300 rounded-lg hover:bg-yellow-100 transition-colors uppercase tracking-wider" @click="toggleLang">
               {{ currentLang === 'it' ? 'EN' : 'IT' }}
             </button>
           </div>
         </header>
 
-        <main class="app-content">
-          <div v-if="!initialized" class="onboarding-overlay-inner">
-            <div class="onboarding-card">
-              <h2>{{ t('configure_plan') }}</h2>
-              <p>{{ t('select_year_curriculum') }}</p>
-
-              <div class="form-group">
-                <label>{{ t('current_academic_year') }}</label>
-                <select v-model="state.year">
-                  <option
-                    v-for="year in academicYears"
-                    :key="year"
-                    :value="year"
-                  >
-                    {{ year }}
-                  </option>
-                </select>
+        <main class="flex-1 flex overflow-hidden relative flex-col md:flex-row">
+          <!-- Configuration Overlay -->
+          <div v-if="!initialized" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/60 backdrop-blur-md p-4">
+            <div class="glass max-w-lg w-full p-8 rounded-3xl shadow-2xl transform transition-all hover:scale-[1.01]">
+              <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-100 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+                  <i class="ph ph-student"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">{{ t('configure_plan') }}</h2>
+                <p class="text-slate-500">{{ t('select_year_curriculum') }}</p>
               </div>
 
-              <div class="form-group">
-                <label>{{ t('curriculum') }}</label>
-                <select v-model="state.curriculum">
-                  <option value="FBA">{{ t('fba_description') }}</option>
-                  <option value="F94">
-                    {{ t('f94_description') }}
-                  </option>
-                </select>
-              </div>
+              <div class="space-y-6">
+                <div class="group">
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">{{ t('current_academic_year') }}</label>
+                  <div class="relative">
+                    <select v-model="state.year" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer hover:border-slate-300">
+                      <option
+                        v-for="year in academicYears"
+                        :key="year"
+                        :value="year"
+                      >
+                        {{ year }}
+                      </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                      <i class="ph ph-caret-down"></i>
+                    </div>
+                  </div>
+                </div>
 
-              <button class="btn" @click="startPlan">
-                {{ t('start_composition') }}
-              </button>
+                <div class="group">
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">{{ t('curriculum') }}</label>
+                  <div class="relative">
+                    <select v-model="state.curriculum" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer hover:border-slate-300">
+                      <option value="FBA">{{ t('fba_description') }}</option>
+                      <option value="F94">
+                        {{ t('f94_description') }}
+                      </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                      <i class="ph ph-caret-down"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 transform transition-all active:scale-95 flex items-center justify-center gap-2 group" @click="startPlan">
+                  {{ t('start_composition') }}
+                  <i class="ph ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div v-else class="app-body">
-            <aside class="sidebar">
-              <div class="stats-panel">
-                <h2>{{ t('your_plan') }}</h2>
-                <div class="progress-item">
-                  <div class="progress-label">
-                    <span>{{ t('total_cfu_official') }}</span>
-                    <span>{{ state.validation.totalCredits }} / 120</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :class="{ valid: state.validation.isValid, invalid: !state.validation.isValid }"
-                      :style="{ width: Math.min((state.validation.totalCredits / 120) * 100, 100) + '%' }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div
-                  v-if="state.validation.specialRules && state.validation.specialRules.length > 0"
-                >
-                  <div
-                    v-for="rule in state.validation.specialRules"
-                    :key="rule.label"
-                    class="progress-item special-rule-item"
-                  >
-                    <div class="progress-label">
-                      <span>{{ rule.label }}</span>
-                      <span>{{ rule.current }} / {{ rule.min }}</span>
+          <!-- App Body -->
+          <div v-else class="flex flex-col md:flex-row w-full h-full">
+            <!-- Sidebar -->
+            <aside class="w-full md:w-96 flex-none bg-white/60 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 flex flex-col h-2/5 md:h-full z-20 shadow-lg md:shadow-none">
+              <div class="p-6 overflow-y-auto custom-scrollbar h-full">
+                <!-- Stats Panel -->
+                <div class="glass-panel p-5 rounded-2xl mb-6">
+                  <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="ph ph-chart-pie-slice text-primary"></i>
+                    {{ t('your_plan') }}
+                  </h2>
+                  <div class="mb-5">
+                    <div class="flex justify-between text-sm font-semibold mb-2">
+                      <span class="text-slate-600">{{ t('total_cfu_official') }}</span>
+                      <span class="text-slate-800">{{ state.validation.totalCredits }} / 120</span>
                     </div>
-                    <div class="progress-bar mini">
+                    <div class="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                       <div
-                        class="bucket-progress-fill special"
-                        :class="{ complete: rule.current >= rule.min }"
-                        :style="{ width: Math.min((rule.current / rule.min) * 100, 100) + '%' }"
+                        class="h-full transition-all duration-700 ease-out rounded-full"
+                        :class="state.validation.isValid ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-red-500 to-rose-400'"
+                        :style="{ width: Math.min((state.validation.totalCredits / 120) * 100, 100) + '%' }"
                       ></div>
                     </div>
                   </div>
-                </div>
 
-                <div
-                  v-if="state.validation.messages.length > 0"
-                  class="validation-messages"
-                >
-                  <div v-for="msg in state.validation.messages" :key="msg">
-                    • {{ msg }}
+                  <div
+                    v-if="state.validation.specialRules && state.validation.specialRules.length > 0"
+                    class="space-y-3"
+                  >
+                    <div
+                      v-for="rule in state.validation.specialRules"
+                      :key="rule.label"
+                      class="bg-white/50 p-3 rounded-xl border border-white/40"
+                    >
+                      <div class="flex justify-between text-xs font-semibold mb-1.5 text-slate-600">
+                        <span>{{ rule.label }}</span>
+                        <span>{{ rule.current }} / {{ rule.min }}</span>
+                      </div>
+                      <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          class="h-full transition-all duration-500 rounded-full"
+                          :class="rule.current >= rule.min ? 'bg-green-500' : 'bg-blue-500'"
+                          :style="{ width: Math.min((rule.current / rule.min) * 100, 100) + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="state.validation.messages.length > 0"
+                    class="mt-4 bg-red-50 text-red-700 p-3 rounded-xl text-xs border border-red-100 space-y-1"
+                  >
+                    <div v-for="msg in state.validation.messages" :key="msg" class="flex items-start gap-1.5">
+                      <i class="ph ph-warning-circle mt-0.5 shrink-0"></i>
+                      <span>{{ msg }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="buckets">
-                <div class="buckets">
+                <!-- Buckets -->
+                <div class="space-y-4">
                   <div
                     v-for="table in sortedTables"
                     :key="table"
-                    class="bucket-section"
-                    :class="{ 'extra-section': table === 'Fuori Piano' }"
+                    class="glass-panel rounded-2xl p-1 transition-all duration-300 hover:shadow-md"
+                    :class="{ 'border-orange-200 bg-orange-50/30': table === 'Fuori Piano' }"
                   >
-                    <div class="bucket-title">
-                      <span
-                        >{{ table.length === 1 ? t('table') + ' ' : '' }}{{ t(table)
-                        }}</span
-                      >
+                    <div class="px-4 py-3 flex justify-between items-center border-b border-slate-100/50">
+                      <span class="font-bold text-sm text-slate-700">
+                        {{ table.length === 1 ? t('table') + ' ' : '' }}{{ t(table) }}
+                      </span>
                       <span
                         v-if="state.validation.tables[table]"
-                        class="bucket-credits"
+                        class="text-xs font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-500"
                       >
                         {{ state.validation.tables[table].current }}
-                        <span v-if="state.validation.tables[table].min"
-                          >/ {{ state.validation.tables[table].min }}</span
-                        >
+                        <span v-if="state.validation.tables[table].min" class="text-slate-400">/ {{ state.validation.tables[table].min }}</span>
                         CFU
                       </span>
                     </div>
 
                     <div
                       v-if="state.validation.tables[table] && state.validation.tables[table].min > 0"
-                      class="bucket-progress-wrapper"
+                      class="px-4 pt-2"
                     >
-                      <div class="bucket-progress-bar">
+                      <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          class="bucket-progress-fill"
-                          :class="{ complete: state.validation.tables[table].current >= state.validation.tables[table].min }"
+                          class="h-full transition-all duration-500"
+                          :class="state.validation.tables[table].current >= state.validation.tables[table].min ? 'bg-green-400' : 'bg-primary/60'"
                           :style="{ width: Math.min((state.validation.tables[table].current / state.validation.tables[table].min) * 100, 100) + '%' }"
                         ></div>
                       </div>
                     </div>
 
-                    <div class="bucket-items">
+                    <div class="p-2 space-y-1">
                       <div
                         v-for="item in groupedPlan[table]"
                         :key="item.id"
-                        class="plan-item"
+                        class="group flex items-center justify-between p-2 rounded-lg bg-white/40 hover:bg-white border border-transparent hover:border-slate-100 transition-all shadow-sm hover:shadow"
                       >
-                        <div class="plan-item-info">
-                          <div class="plan-item-name">{{ item.name }}</div>
-                          <div class="plan-item-meta">{{ item.cfu }} CFU</div>
+                        <div class="min-w-0 flex-1 mr-2">
+                          <div class="font-semibold text-xs text-slate-800 truncate" :title="item.name">{{ item.name }}</div>
+                          <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 rounded">{{ item.cfu }} CFU</span>
 
-                          <div
-                            v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1"
-                            class="move-selector"
-                          >
-                            <select
-                              :value="item.table"
-                              @change="movePlanItem(item.id, $event.target.value)"
+                            <div
+                              v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1"
+                              class="relative"
                             >
-                              <option
-                                v-for="targetTable in getPossibleTables(item)"
-                                :key="targetTable"
-                                :value="targetTable"
+                              <!-- <select
+                                :value="item.table"
+                                @change="movePlanItem(item.id, $event.target.value)"
+                                class="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 rounded px-1 py-0.5 cursor-pointer hover:bg-blue-100 focus:outline-none"
                               >
-                                {{ t('move_to') }} {{ targetTable }}
-                              </option>
-                            </select>
+                                <option
+                                  v-for="targetTable in getPossibleTables(item)"
+                                  :key="targetTable"
+                                  :value="targetTable"
+                                >
+                                  {{ t('move_to') }} {{ targetTable }}
+                                </option> -->
+                              </select>
+                            </div>
                           </div>
                         </div>
                         <button
                           v-if="table !== 'Obbligatori'"
-                          class="remove-btn"
+                          class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                           @click="removePlanItem(item.id)"
                         >
                           <i class="ph ph-trash"></i>
                         </button>
                       </div>
-                      <!-- <div v-if="groupedPlan[table].length === 0" class="empty-msg">Nessun esame selezionato.</div> -->
+                      <!-- <div v-if="groupedPlan[table].length === 0" class="text-xs text-slate-400 italic text-center py-2">{{ t('no_exam_selected') }}</div> -->
                     </div>
 
-                    <div v-if="table === 'Facoltativi'" class="manual-add">
-                      <details class="ghost-details">
-                        <summary>
-                          <i class="ph ph-plus-circle"></i> {{ t('add_external_exam') }}
+                    <div v-if="table === 'Facoltativi'" class="px-2 pb-2">
+                      <details class="group/details border border-dashed border-slate-300 rounded-xl bg-slate-50/50 open:bg-white open:border-primary/30 open:shadow-sm transition-all">
+                        <summary class="list-none flex items-center justify-center gap-2 py-2 text-xs font-semibold text-slate-500 cursor-pointer hover:text-primary transition-colors">
+                          <i class="ph ph-plus-circle text-lg"></i> {{ t('add_external_exam') }}
                         </summary>
-                        <div class="manual-form">
+                        <div class="p-2 pt-0 flex gap-2">
                           <input
                             type="text"
                             :placeholder="t('exam_name_placeholder')"
                             v-model="state.newExamName"
                             @keyup.enter="addCustom"
+                            class="flex-1 min-w-0 text-xs p-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-slate-50 focus:bg-white transition-all"
                           />
                           <input
                             type="number"
                             v-model.number="state.newExamCFU"
+                            class="w-12 text-xs p-2 text-center border border-slate-200 rounded-lg focus:outline-none focus:border-primary bg-slate-50 focus:bg-white transition-all"
                           />
-                          <button @click="addCustom">{{ t('ok') }}</button>
+                          <button @click="addCustom" class="bg-green-500 hover:bg-green-600 text-white rounded-lg px-2 shadow-sm transition-colors">
+                            <i class="ph ph-check"></i>
+                          </button>
                         </div>
                       </details>
                     </div>
@@ -222,108 +314,121 @@
               </div>
             </aside>
 
-            <section class="matrix-container">
-              <div class="matrix-header-bar">
-                <div class="matrix-title">
-                  <h1>{{ t('main_title') }}</h1>
-                  <span class="tag">{{ state.curriculum }}</span>
-                  <span class="tag">{{ state.year }}</span>
+            <!-- Matrix -->
+            <section class="flex-1 flex flex-col h-3/5 md:h-full overflow-hidden bg-slate-50/30">
+              <div class="px-4 py-3 md:px-6 md:py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-10 shadow-sm">
+                <div class="flex items-center gap-3">
+                  <h1 class="text-lg md:text-xl font-bold text-slate-800 tracking-tight">{{ t('main_title') }}</h1>
+                  <span class="bg-slate-800 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">{{ state.curriculum }}</span>
+                  <span class="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full border border-primary/20">{{ state.year }}</span>
                 </div>
-                <div class="search-container">
-                  <i class="ph ph-magnifying-glass"></i>
-                  <input
-                    type="text"
-                    v-model="state.searchQuery"
-                    :placeholder="t('search_placeholder')"
-                    class="search-input"
-                  />
-                  <button
-                    v-if="state.searchQuery"
-                    @click="state.searchQuery = ''"
-                    class="search-clear"
-                  >
-                    <i class="ph ph-x-circle"></i>
-                  </button>
-                </div>
-                <div class="matrix-actions" style="display: flex; gap: 0.5rem">
-                  <button
-                    class="btn-outline"
-                    @click="downloadCSV"
-                    :title="t('download_csv')"
-                  >
-                    <i class="ph ph-download-simple"></i> {{ t('download_csv') }}
-                  </button>
-                  <button
-                    class="btn-outline btn-danger-soft"
-                    @click="resetPlan"
-                    :title="t('reset_title')"
-                  >
-                    <i class="ph ph-arrow-counter-clockwise"></i> {{ t('reset') }}
-                  </button>
-                  <button class="btn-outline" @click="initialized = false">
-                    <i class="ph ph-gear"></i> {{ t('configure') }}
-                  </button>
+
+                <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                  <div class="relative group flex-1 md:w-64">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"></i>
+                    <input
+                      type="text"
+                      v-model="state.searchQuery"
+                      :placeholder="t('search_placeholder')"
+                      class="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 shadow-sm transition-all"
+                    />
+                    <button
+                      v-if="state.searchQuery"
+                      @click="state.searchQuery = ''"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <i class="ph ph-x-circle text-lg"></i>
+                    </button>
+                  </div>
+
+                  <div class="flex gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+                    <button
+                      class="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all whitespace-nowrap shadow-sm"
+                      @click="downloadCSV"
+                      :title="t('download_csv')"
+                    >
+                      <i class="ph ph-download-simple text-base"></i> <span class="hidden sm:inline">{{ t('download_csv') }}</span>
+                    </button>
+                    <button
+                      class="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all whitespace-nowrap shadow-sm"
+                      @click="resetPlan"
+                      :title="t('reset_title')"
+                    >
+                      <i class="ph ph-arrow-counter-clockwise text-base"></i> <span class="hidden sm:inline">{{ t('reset') }}</span>
+                    </button>
+                    <button class="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all whitespace-nowrap shadow-sm" @click="initialized = false">
+                      <i class="ph ph-gear text-base"></i> <span class="hidden sm:inline">{{ t('configure') }}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div class="matrix-grid">
-                <div class="matrix-header sticky-col">{{ t('pillar_header') }}</div>
-                <div class="matrix-header">{{ t('q1') }}</div>
-                <div class="matrix-header">{{ t('q2') }}</div>
-                <div class="matrix-header">{{ t('q3') }}</div>
+              <div class="flex-1 overflow-auto bg-slate-200 gap-px grid grid-cols-[140px_repeat(3,minmax(200px,1fr))] md:grid-cols-[240px_repeat(3,1fr)] auto-rows-max">
+                <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 left-0 z-40 text-center shadow-sm">{{ t('pillar_header') }}</div>
+                <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 z-30 text-center shadow-sm">{{ t('q1') }}</div>
+                <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 z-30 text-center shadow-sm">{{ t('q2') }}</div>
+                <div class="bg-white p-3 md:p-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 sticky top-0 z-30 text-center shadow-sm">{{ t('q3') }}</div>
 
                 <template v-for="pillar in matrix" :key="pillar.name">
                   <div
-                    class="pillar-group-row"
-                    :style="getPillarStyle(pillar.name)"
+                    class="col-span-full py-3 px-6 text-sm font-black uppercase tracking-wider text-slate-600 flex items-center border-l-[6px] sticky left-0"
+                    :style="{ backgroundColor: 'var(--pillar-bg)', borderLeftColor: getPillarColor(pillar.name) }"
                   >
                     {{ pillar.name }}
                   </div>
 
                   <template v-for="sub in pillar.subpillars" :key="sub.name">
-                    <div class="subpillar-row-header sticky-col">
+                    <div class="sticky left-0 bg-white p-4 text-xs font-bold text-slate-500 flex items-center shadow-[2px_0_5px_rgba(0,0,0,0.02)] z-20">
                       {{ sub.name }}
                     </div>
                     <div
                       v-for="period in sub.periods"
                       :key="period.id"
-                      class="matrix-cell"
+                      class="bg-white p-2 min-h-[120px] hover:bg-slate-50 transition-colors"
                     >
                       <div
                         v-for="exam in period.exams"
                         :key="exam.id"
-                        class="exam-card"
-                        :class="getExamStatusClass(exam)"
-                        :style="getPillarStyle(pillar.name)"
+                        class="group relative rounded-xl p-3 mb-2 cursor-pointer transition-all duration-300 border-l-[4px] shadow-sm hover:shadow-md hover:-translate-y-1 bg-white border border-slate-100"
+                        :class="[
+                           getExamStatusClass(exam) === 'selected' ? '!bg-blue-50/50 !border-primary' : '',
+                           getExamStatusClass(exam) === 'disabled' ? '!opacity-50 grayscale border-dashed !bg-slate-50' : ''
+                        ]"
+                        :style="{ borderLeftColor: getPillarColor(pillar.name) }"
                         @click="toggleExam(exam)"
                       >
-                        <div class="exam-info">
-                          <span class="exam-name">{{ exam.name }}</span>
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                          <span class="font-bold text-xs md:text-sm text-slate-800 leading-tight group-hover:text-primary transition-colors">{{ exam.name }}</span>
                           <a
                             v-if="exam.link"
                             :href="exam.link"
                             target="_blank"
                             @click.stop
-                            class="exam-link"
+                            class="text-slate-300 hover:text-primary transition-colors shrink-0"
                           >
-                            <i class="ph ph-arrow-square-out"></i>
+                            <i class="ph ph-arrow-square-out text-lg"></i>
                           </a>
                         </div>
-                        <div class="exam-cfu">{{ exam.cfu }} CFU</div>
-                        <div class="exam-actions">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{{ exam.cfu }} CFU</div>
+                        <div class="flex flex-wrap gap-1.5">
                           <span
-                            class="tag-table"
-                            :class="{ 'tag-optional': getDisplayTables(exam) === t('Facoltativi') }"
+                            class="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border"
+                            :class="getDisplayTables(exam) === t('Facoltativi') ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-slate-100 text-slate-600 border-slate-200'"
                           >
                             {{ getDisplayTables(exam) }}
                           </span>
                           <div
                             v-if="!isAvailable(exam)"
-                            class="availability-warning"
+                            class="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100"
                           >
                             <i class="ph ph-calendar-blank"></i>
                             {{ getNextAvailability(exam) }}
                           </div>
+                        </div>
+
+                        <!-- Selected Indicator -->
+                        <div v-if="getExamStatusClass(exam) === 'selected'" class="absolute -top-1 -right-1 bg-primary text-white rounded-full p-0.5 shadow-md">
+                          <i class="ph ph-check text-xs"></i>
                         </div>
                       </div>
                     </div>
@@ -333,25 +438,26 @@
             </section>
           </div>
         </main>
-        <footer class="app-footer">
-          <div class="footer-container">
-            <div class="footer-info">
-              <p>© 2026 Roberto Tallarini • Jules, Gemini, Vue 3</p>
-            </div>
-            <div class="footer-links">
-              <a
-                href="https://github.com/rob00t-unimi/unimi-studyplan-composer"
-                target="_blank"
-              >
-                <i class="ph ph-github-logo"></i> {{ t('footer_repo') }}
-              </a>
-              <a
-                href="https://rob00t-unimi.github.io/Portfolio/"
-                target="_blank"
-              >
-                <i class="ph ph-user"></i> {{ t('footer_portfolio') }}
-              </a>
-            </div>
+
+        <footer class="bg-white/80 backdrop-blur border-t border-slate-200 py-3 px-6 text-xs text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <div class="flex items-center gap-2">
+            <p>© 2026 Roberto Tallarini • Jules, Gemini • Vue 3, Tailwind CSS</p>
+          </div>
+          <div class="flex gap-4">
+            <a
+              href="https://github.com/rob00t-unimi/unimi-studyplan-composer"
+              target="_blank"
+              class="hover:text-slate-600 transition-colors flex items-center gap-1"
+            >
+              <i class="ph ph-github-logo text-lg"></i> {{ t('footer_repo') }}
+            </a>
+            <a
+              href="https://rob00t-unimi.github.io/Portfolio/"
+              target="_blank"
+              class="hover:text-slate-600 transition-colors flex items-center gap-1"
+            >
+              <i class="ph ph-user text-lg"></i> {{ t('footer_portfolio') }}
+            </a>
           </div>
         </footer>
       </div>

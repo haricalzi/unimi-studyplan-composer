@@ -31,7 +31,7 @@ export const messages = {
         no_exam_selected: "Nessun esame selezionato.",
         
         // Matrix / Main
-        main_title: "Esami | Informatica Magistrale",
+        main_title: "Esami  |  Informatica Magistrale",
         search_placeholder: "Cerca esame per nome...",
         download_csv: "Scarica CSV",
         reset_title: "Resetta tutto",
@@ -102,7 +102,7 @@ export const messages = {
         no_exam_selected: "No exam selected.",
         
         // Matrix / Main
-        main_title: "Exams | Master Computer Science",
+        main_title: "Exams  |  Master Computer Science",
         search_placeholder: "Search exam by name...",
         download_csv: "Download CSV",
         reset_title: "Reset all",

@@ -336,6 +336,7 @@ createApp({
       getPossibleTables,
       isInPlan,
       getExamStatusClass,
+      getPillarColor,
       getPillarStyle,
       getNextAvailability,
       getDisplayTables,
