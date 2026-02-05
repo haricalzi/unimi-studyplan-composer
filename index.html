@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composizione Piano di Studi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- PapaParse -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div id="app">
+        <div v-if="loading" class="onboarding-overlay">
+            <div class="onboarding-card">
+                <h2>Caricamento...</h2>
+            </div>
+        </div>
+
+        <!-- Onboarding -->
+        <div v-if="!loading && !initialized" class="onboarding-overlay">
+            <div class="onboarding-card">
+                <h2>Configura il tuo Piano</h2>
+                <p>Seleziona il tuo anno accademico e ordinamento.</p>
+
+                <div class="form-group">
+                    <label>Anno Accademico</label>
+                    <select v-model="state.year">
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2025/2026">2025/2026</option>
+                        <option value="2026/2027">2026/2027</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Ordinamento</label>
+                    <select v-model="state.curriculum">
+                        <option value="FBA">FBA (Nuovo, dal 2025/26)</option>
+                        <option value="F94">F94 (Vecchio)</option>
+                    </select>
+                </div>
+
+                <button class="btn" @click="startPlan">Inizia</button>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div v-if="!loading && initialized" class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="stats-panel">
+                    <h2>Il tuo Piano</h2>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>Totale CFU</span>
+                            <span>{{ state.validation.totalCredits }} / 120</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill"
+                                :class="{ valid: state.validation.isValid, invalid: !state.validation.isValid }"
+                                :style="{ width: Math.min((state.validation.totalCredits / 120) * 100, 100) + '%' }">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="state.validation.messages.length > 0" class="validation-messages">
+                        <div v-for="msg in state.validation.messages" :key="msg">• {{ msg }}</div>
+                    </div>
+                </div>
+
+                <div class="buckets">
+                    <div v-for="table in sortedTables" :key="table" class="bucket-section">
+                        <div class="bucket-title">
+                            <span>Tabella {{ table }}</span>
+                            <span v-if="state.validation.tables[table]">
+                                {{ state.validation.tables[table].current }}
+                                <span v-if="state.validation.tables[table].min">/ {{ state.validation.tables[table].min }}</span>
+                            </span>
+                        </div>
+
+                        <div class="bucket-items">
+                            <div v-for="item in groupedPlan[table]" :key="item.id" class="plan-item">
+                                <div>
+                                    <div style="font-weight:500">{{ item.name }}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-light)">{{ item.cfu }} CFU</div>
+
+                                    <div v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1" style="margin-top:0.25rem;">
+                                        <select :value="item.table" @change="movePlanItem(item.id, $event.target.value)"
+                                                style="font-size:0.7rem; padding:0.1rem; border:1px solid #ccc; border-radius:0.2rem; background:white;">
+                                            <option v-for="t in getPossibleTables(item)" :key="t" :value="t">Sposta in {{ t }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="remove-btn" @click="removePlanItem(item.id)">
+                                        <i class="ph ph-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div v-if="groupedPlan[table].length === 0" style="font-size:0.8rem; color:var(--text-light); font-style:italic;">
+                                Nessun esame selezionato.
+                            </div>
+                        </div>
+
+                        <!-- Manual Add for Optional -->
+                        <div v-if="table === 'Facoltativi'" style="margin-top:0.5rem">
+                           <!-- Simple inline form could go here, for now relying on user selecting from matrix or we can add a modal later if needed. Strategy says 'textual addition'. -->
+                           <details>
+                               <summary style="cursor:pointer; font-size:0.8rem; color:var(--primary)">Aggiungi esame esterno</summary>
+                               <div style="margin-top:0.5rem; display:flex; gap:0.5rem">
+                                   <input type="text" placeholder="Nome esame" id="customName" style="flex:1; padding:0.25rem;">
+                                   <input type="number" placeholder="CFU" id="customCFU" value="6" style="width:50px; padding:0.25rem;">
+                                   <button class="btn" style="padding:0.25rem 0.5rem; font-size:0.8rem"
+                                        @click="addCustom(document.getElementById('customName').value, document.getElementById('customCFU').value)">+</button>
+                               </div>
+                           </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matrix -->
+            <div class="matrix-container">
+                <div class="matrix-header-bar" style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 1rem; background:white; border-bottom:1px solid var(--border);">
+                    <h1 style="font-size:1.25rem; margin:0;">Matrix View</h1>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <span class="tag">{{ state.curriculum }}</span>
+                        <span class="tag">{{ state.year }}</span>
+                        <button class="btn" style="font-size:0.8rem; padding:0.4rem 0.8rem;" @click="initialized = false">Configura</button>
+                    </div>
+                </div>
+
+                <div class="matrix-grid">
+                    <!-- Headers -->
+                    <div class="matrix-header" style="z-index:20; left:0;">Pillars</div>
+                    <div class="matrix-header">Quadrimestre 1</div>
+                    <div class="matrix-header">Quadrimestre 2</div>
+                    <div class="matrix-header">Quadrimestre 3</div>
+
+                    <!-- Rows -->
+                    <template v-for="row in matrix" :key="row.name">
+                        <div class="pillar-row-header" :style="getPillarStyle(row.name)">
+                            {{ row.name }}
+                        </div>
+                        <div v-for="period in row.periods" :key="period.id" class="matrix-cell">
+                            <div v-for="exam in period.exams" :key="exam.id"
+                                 class="exam-card"
+                                 :class="getExamStatusClass(exam)"
+                                 :style="getPillarStyle(row.name)"
+                                 @click="toggleExam(exam)">
+
+                                <div class="exam-info">
+                                    <span style="font-weight:600">{{ exam.name }}</span>
+                                    <a v-if="exam.link" :href="exam.link" target="_blank" @click.stop class="exam-link" style="color:var(--primary)">
+                                        <i class="ph ph-arrow-square-out"></i>
+                                    </a>
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--text-light); margin-top:0.25rem;">
+                                    {{ exam.cfu }} CFU
+                                </div>
+                                <div class="exam-actions">
+                                    <span v-if="exam.rawTable" class="tag">{{ exam.rawTable }}</span>
+                                    <span v-if="!isAvailable(exam)" class="tag" style="color:var(--danger)">Non disp.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
