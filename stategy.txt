@@ -14,3 +14,4 @@ prerequisiti: esiste il concetto di pillar tematico, gli esami sono catalogati i
 5) per ogni esame aggiunto vogliamo vedere la progressione totale dei crediti e dei crediti minimi richiesti relativi a quella tabella.
 
 6) salviamo progressi etc.. nel local storage dell'utente, niente backend perchè girerà su github pages
+7) nella tabella facoltativi l'utente deve poter aggiungere esami che scrive lui stesso in modo testuale (esami non presenti nel csv)
