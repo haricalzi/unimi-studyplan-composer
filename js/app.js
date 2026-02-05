@@ -19,7 +19,9 @@ createApp({
             year: academicYearDefault, 
             curriculum: 'FBA',
             plan: [],
-            validation: {}
+            validation: {},
+            newExamName: '', // <--- Aggiunto
+            newExamCFU: 6    // <--- Aggiunto
         });
 
         const pillars = computed(() => {
@@ -181,9 +183,14 @@ createApp({
             refreshState();
         }
 
-        function addCustom(name, cfu) {
-            if (!name || !cfu) return;
-            pm.value.addCustomExam(name, cfu);
+        function addCustom() {
+            if (!state.newExamName || !state.newExamCFU) return;
+            pm.value.addCustomExam(state.newExamName, state.newExamCFU);
+            
+            // Reset dei campi dopo l'aggiunta
+            state.newExamName = '';
+            state.newExamCFU = 6;
+            
             refreshState();
         }
 

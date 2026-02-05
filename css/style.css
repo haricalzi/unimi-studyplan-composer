@@ -287,3 +287,168 @@ body {
 .ph-heart {
     font-size: 0.7rem;
 }
+
+/* Mini Progress Bar per i Bucket */
+.bucket-progress-wrapper {
+    margin-bottom: 0.75rem;
+    margin-top: -0.25rem; /* Avvicina la barra al titolo */
+}
+
+.bucket-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.bucket-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+}
+
+/* Colore di successo quando il target del bucket è raggiunto */
+.bucket-progress-fill.complete {
+    background: var(--success);
+}
+
+/* Riduzione spazi bucket */
+.bucket-section { margin-bottom: 1rem; }
+.bucket-title { margin-bottom: 0.4rem; font-size: 0.8rem; }
+.bucket-progress-wrapper { margin-bottom: 0.5rem; }
+
+/* Item del piano ultra-compatti */
+.plan-item {
+    display: flex;
+    align-items: center; /* Allinea tutto verticalmente al centro */
+    gap: 0.5rem;
+    padding: 4px 8px; /* Padding ridottissimo */
+    margin-bottom: 2px; /* Quasi attaccati */
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.plan-item-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Nome a sx, CFU a dx */
+    gap: 0.5rem;
+    min-width: 0; /* Permette l'ellipsis */
+}
+
+.plan-item-name {
+    font-size: 0.75rem; /* Testo più piccolo */
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Taglia i nomi lunghi con ... */
+}
+
+.plan-item-meta {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Move selector in miniatura */
+.move-selector select {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+    height: 18px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 3px;
+    max-width: 80px;
+}
+
+.remove-btn { 
+    font-size: 0.8rem; 
+    padding: 0; 
+    opacity: 0.6; 
+}
+.remove-btn:hover { opacity: 1; color: var(--danger); }
+
+/* Add External Exam - Design Ghost Item */
+.manual-add {
+    margin-top: 6px;
+}
+
+.manual-add details {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+/* Stile del trigger (Summary) */
+.manual-add summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    background: transparent;
+}
+
+.manual-add summary:hover {
+    background: rgba(37, 99, 235, 0.05);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.manual-add summary::-webkit-details-marker { display: none; }
+
+/* Stato Aperto */
+.manual-add[open] {
+    border: 1px solid var(--primary);
+    background: var(--surface);
+}
+
+.manual-add[open] summary {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 4px 4px 0 0;
+    color: var(--text);
+}
+
+/* Form ultra-compatto */
+.manual-form {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+}
+
+.manual-form input {
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg);
+    outline: none;
+}
+
+.manual-form input:focus { border-color: var(--primary); }
+.manual-form input[type="text"] { flex: 1; }
+.manual-form input[type="number"] { width: 45px; text-align: center; }
+
+.manual-form button {
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.manual-form button:hover { opacity: 0.9; }

@@ -77,58 +77,90 @@
                                 </div>
                             </div>
 
+                            <div v-if="state.validation.specialRules && state.validation.specialRules.length > 0">
+    <div v-for="rule in state.validation.specialRules" :key="rule.label" class="progress-item special-rule-item">
+        <div class="progress-label">
+            <span>{{ rule.label }}</span>
+            <span>{{ rule.current }} / {{ rule.min }}</span>
+        </div>
+        <div class="progress-bar mini">
+            <div class="bucket-progress-fill special"
+                 :class="{ complete: rule.current >= rule.min }"
+                 :style="{ width: Math.min((rule.current / rule.min) * 100, 100) + '%' }">
+            </div>
+        </div>
+    </div>
+</div>
+
                             <div v-if="state.validation.messages.length > 0" class="validation-messages">
                                 <div v-for="msg in state.validation.messages" :key="msg">• {{ msg }}</div>
                             </div>
                         </div>
 
                         <div class="buckets">
-                            <div v-for="table in sortedTables" :key="table" class="bucket-section" :class="{ 'extra-section': table === 'Fuori Piano' }">
-                                <div class="bucket-title">
-                                    <span>{{ table.length === 1 ? 'Tabella ' : '' }}{{ table }}</span>
-                                    <span v-if="state.validation.tables[table]" class="bucket-credits">
-                                        {{ state.validation.tables[table].current }}
-                                        <span v-if="state.validation.tables[table].min">/ {{ state.validation.tables[table].min }}</span> CFU
-                                    </span>
-                                </div>
+<div class="buckets">
+    <div v-for="table in sortedTables" :key="table" class="bucket-section" :class="{ 'extra-section': table === 'Fuori Piano' }">
+        
+        <div class="bucket-title">
+            <span>{{ table.length === 1 ? 'Tabella ' : '' }}{{ table }}</span>
+            <span v-if="state.validation.tables[table]" class="bucket-credits">
+                {{ state.validation.tables[table].current }}
+                <span v-if="state.validation.tables[table].min">/ {{ state.validation.tables[table].min }}</span> CFU
+            </span>
+        </div>
 
-                                <div class="bucket-items">
-                                    <div v-for="item in groupedPlan[table]" :key="item.id" class="plan-item">
-                                        <div class="plan-item-info">
-                                            <div class="plan-item-name">{{ item.name }}</div>
-                                            <div class="plan-item-meta">{{ item.cfu }} CFU</div>
+        <div v-if="state.validation.tables[table] && state.validation.tables[table].min > 0" class="bucket-progress-wrapper">
+            <div class="bucket-progress-bar">
+                <div class="bucket-progress-fill" 
+                     :class="{ complete: state.validation.tables[table].current >= state.validation.tables[table].min }"
+                     :style="{ width: Math.min((state.validation.tables[table].current / state.validation.tables[table].min) * 100, 100) + '%' }">
+                </div>
+            </div>
+        </div>
 
-                                            <div v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1" class="move-selector">
-                                                <select :value="item.table" @change="movePlanItem(item.id, $event.target.value)">
-                                                    <option v-for="t in getPossibleTables(item)" :key="t" :value="t">Sposta in {{ t }}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <button v-if="table !== 'Obbligatori'" class="remove-btn" @click="removePlanItem(item.id)">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                    </div>
-                                    <div v-if="groupedPlan[table].length === 0" class="empty-msg">Nessun esame selezionato.</div>
-                                </div>
+        <div class="bucket-items">
+            <div v-for="item in groupedPlan[table]" :key="item.id" class="plan-item">
+                <div class="plan-item-info">
+                    <div class="plan-item-name">{{ item.name }}</div>
+                    <div class="plan-item-meta">{{ item.cfu }} CFU</div>
 
-                                <div v-if="table === 'Facoltativi'" class="manual-add">
-                                   <details>
-                                       <summary>Aggiungi esame esterno</summary>
-                                       <div class="manual-form">
-                                           <input type="text" placeholder="Nome esame" id="customName">
-                                           <input type="number" value="6" id="customCFU">
-                                           <button @click="addCustom(document.getElementById('customName').value, document.getElementById('customCFU').value)">+</button>
-                                       </div>
-                                   </details>
-                                </div>
-                            </div>
+                    <div v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1" class="move-selector">
+                        <select :value="item.table" @change="movePlanItem(item.id, $event.target.value)">
+                            <option v-for="t in getPossibleTables(item)" :key="t" :value="t">Sposta in {{ t }}</option>
+                        </select>
+                    </div>
+                </div>
+                <button v-if="table !== 'Obbligatori'" class="remove-btn" @click="removePlanItem(item.id)">
+                    <i class="ph ph-trash"></i>
+                </button>
+            </div>
+            <!-- <div v-if="groupedPlan[table].length === 0" class="empty-msg">Nessun esame selezionato.</div> -->
+        </div>
+
+        <div v-if="table === 'Facoltativi'" class="manual-add">
+            <details class="ghost-details">
+                <summary>
+                    <i class="ph ph-plus-circle"></i> Aggiungi esame esterno
+                </summary>
+                <div class="manual-form">
+                    <input type="text" 
+                        placeholder="Nome esame..." 
+                        v-model="state.newExamName"
+                        @keyup.enter="addCustom"> <input type="number" 
+                        v-model.number="state.newExamCFU">
+                    <button @click="addCustom">OK</button>
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
                         </div>
                     </aside>
 
                     <section class="matrix-container">
                         <div class="matrix-header-bar">
                             <div class="matrix-title">
-                                <h1>Esami</h1>
+                                <h1>Esami | Informatica Magistrale</h1>
                                 <span class="tag">{{ state.curriculum }}</span>
                                 <span class="tag">{{ state.year }}</span>
                             </div>

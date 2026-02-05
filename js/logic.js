@@ -145,122 +145,126 @@ export class PlanManager {
         return true;
     }
 
-    rebalanceBuckets() {
-        const common = this.rules.degree_requirements.common_rules;
-        const freeLimit = common.free_exams_credits || 12;
-        
-        const limits = this.curriculum === 'FBA' 
-            ? { '1': 12, '2': 54, 'Facoltativi': freeLimit } 
-            : { 'A': 18, 'B': 30, 'C': 12, 'Facoltativi': freeLimit };
+rebalanceBuckets() {
+    const common = this.rules.degree_requirements.common_rules;
+    const progRules = this.rules.degree_requirements.programs[this.curriculum].curriculum_rules;
+    
+    // 1. Mappiamo i limiti e identifichiamo le regole di somma (es. BC)
+    const limits = {};
+    let minSumBC = 0;
+    progRules.forEach(r => {
+        if (r.source === 'BC') minSumBC = r.min_sumBC_credits;
+        else limits[r.source] = r.min_credits;
+    });
+    const freeLimit = common.free_exams_credits;
 
-        const newPlan = [];
-        const mandatoryItems = this.plan.filter(p => p.table === 'Obbligatori');
-        newPlan.push(...mandatoryItems);
-        let currentTotal = mandatoryItems.reduce((s, p) => s + p.cfu, 0);
+    const newPlan = [];
+    const mandatoryItems = this.plan.filter(p => p.table === 'Obbligatori');
+    newPlan.push(...mandatoryItems);
+    
+    const activeExams = this.plan.filter(p => p.table !== 'Obbligatori');
 
-        const activeExams = this.plan.filter(p => p.table !== 'Obbligatori');
-        
-        activeExams.forEach(item => {
-            const exam = this.allExams.find(e => e.id === item.examId);
-            const allowed = item.isCustom ? [] : this.getAllowedTables(exam);
-            let assigned = false;
+    activeExams.forEach(item => {
+        const exam = this.allExams.find(e => e.id === item.examId);
+        const allowed = item.isCustom ? [] : this.getAllowedTables(exam);
+        let assigned = false;
 
-            if (currentTotal >= common.total_credits) {
-                item.table = 'Fuori Piano';
-                newPlan.push(item);
-                currentTotal += item.cfu;
-                return;
+        // --- TENTATIVO 1: Tabelle di indirizzo (A, B, C...) ---
+        for (const t of allowed) {
+            const currentInT = newPlan.filter(p => p.table === t).reduce((s, p) => s + p.cfu, 0);
+            const currentBCSum = newPlan.filter(p => p.table === 'B' || p.table === 'C').reduce((s, p) => s + p.cfu, 0);
+            
+            // CONDIZIONE RESTRITTIVA:
+            // Entra nella tabella se non ha raggiunto il minimo individuale...
+            const underIndividualMin = currentInT < (limits[t] || 0);
+            
+            // ...OPPURE se è un'eccezione B/C per raggiungere i 48 CFU totali
+            const isBCException = (t === 'B' || t === 'C') && currentBCSum < minSumBC;
+
+            if (underIndividualMin || isBCException) {
+                item.table = t;
+                assigned = true;
+                break;
             }
-
-            for (const t of allowed) {
-                const currentInT = newPlan.filter(p => p.table === t).reduce((s, p) => s + p.cfu, 0);
-                if (currentInT < (limits[t] || 999)) {
-                    item.table = t;
-                    assigned = true;
-                    break;
-                }
-            }
-
-            if (!assigned) {
-                const currentInFac = newPlan.filter(p => p.table === 'Facoltativi').reduce((s, p) => s + p.cfu, 0);
-                if (currentInFac < limits['Facoltativi']) {
-                    item.table = 'Facoltativi';
-                    assigned = true;
-                }
-            }
-
-            if (!assigned) item.table = 'Fuori Piano';
-
-            newPlan.push(item);
-            currentTotal += item.cfu;
-        });
-
-        this.plan = newPlan;
-    }
-
-    validate() {
-        const common = this.rules.degree_requirements.common_rules;
-        const report = { totalCredits: 0, tables: {}, isValid: true, messages: [] };
-        const schema = this.curriculum === 'FBA'
-            ? ['Obbligatori', '1', '2', 'Facoltativi', 'Fuori Piano']
-            : ['Obbligatori', 'A', 'B', 'C', 'Facoltativi', 'Fuori Piano'];
-
-        schema.forEach(t => report.tables[t] = { current: 0, min: 0 });
-
-        this.plan.forEach(item => {
-            if (item.table !== 'Fuori Piano') report.totalCredits += item.cfu;
-            report.tables[item.table].current += item.cfu;
-        });
-
-        const mandatoryTarget = common.mandatory_exams.reduce((s, e) => s + e.credits, 0);
-        report.tables['Obbligatori'].min = mandatoryTarget;
-        if (report.tables['Obbligatori'].current < mandatoryTarget) {
-            report.isValid = false;
-            report.messages.push(`Obbligatori: Mancano ${mandatoryTarget - report.tables['Obbligatori'].current} CFU`);
         }
 
-        report.tables['Facoltativi'].min = common.free_exams_credits;
-        if (report.tables['Facoltativi'].current < common.free_exams_credits) {
-            report.isValid = false;
-            report.messages.push(`Facoltativi: Mancano ${common.free_exams_credits - report.tables['Facoltativi'].current} CFU`);
+        // --- TENTATIVO 2: Facoltativi (esattamente 12 CFU) ---
+        if (!assigned) {
+            const currentInFac = newPlan.filter(p => p.table === 'Facoltativi').reduce((s, p) => s + p.cfu, 0);
+            if (currentInFac < freeLimit) {
+                item.table = 'Facoltativi';
+                assigned = true;
+            }
         }
 
-        const progRules = this.rules.degree_requirements.programs[this.curriculum].curriculum_rules;
-        let sumABCMin = 0;
-        let additionalABC = 0;
+        // --- TENTATIVO 3: Fuori Piano ---
+        // Se non è servito a colmare i minimi o la regola B+C, va fuori piano
+        if (!assigned) {
+            item.table = 'Fuori Piano';
+        }
 
-        progRules.forEach(rule => {
-            if (rule.source === 'ABC') {
-                additionalABC = rule.additional_credits;
-                return;
+        newPlan.push(item);
+    });
+
+    this.plan = newPlan;
+}
+
+validate() {
+    const common = this.rules.degree_requirements.common_rules;
+    const report = { totalCredits: 0, tables: {}, specialRules: [], isValid: true, messages: [] };
+    const schema = this.curriculum === 'FBA'
+        ? ['Obbligatori', '1', '2', 'Facoltativi', 'Fuori Piano']
+        : ['Obbligatori', 'A', 'B', 'C', 'Facoltativi', 'Fuori Piano'];
+
+    schema.forEach(t => report.tables[t] = { current: 0, min: 0 });
+
+    this.plan.forEach(item => {
+        if (item.table !== 'Fuori Piano') report.totalCredits += item.cfu;
+        report.tables[item.table].current += item.cfu;
+    });
+
+    // Validazione Standard (Obbligatori e Facoltativi)
+    report.tables['Obbligatori'].min = common.mandatory_exams.reduce((s, e) => s + e.credits, 0);
+    report.tables['Facoltativi'].min = common.free_exams_credits;
+
+    // Carichiamo regole dal JSON
+    const progRules = this.rules.degree_requirements.programs[this.curriculum].curriculum_rules;
+    progRules.forEach(rule => {
+        if (rule.source === 'BC') {
+            const currentBC = report.tables['B'].current + report.tables['C'].current;
+            report.specialRules.push({
+                label: 'Somma Tabelle B + C',
+                current: currentBC,
+                min: rule.min_sumBC_credits
+            });
+            if (currentBC < rule.min_sumBC_credits) {
+                report.isValid = false;
+                report.messages.push(`Somma delle tabelle B e C insufficiente: mancano ${rule.min_sumBC_credits - currentBC} CFU`);
             }
+        } else {
             const t = rule.source;
             if (report.tables[t]) {
                 report.tables[t].min = rule.min_credits;
-                sumABCMin += rule.min_credits;
                 if (report.tables[t].current < rule.min_credits) {
                     report.isValid = false;
                     report.messages.push(`Tabella ${t}: Mancano ${rule.min_credits - report.tables[t].current} CFU`);
                 }
             }
-        });
-
-        if (this.curriculum === 'F94' && additionalABC > 0) {
-            const sumABC = report.tables['A'].current + report.tables['B'].current + report.tables['C'].current;
-            const targetABC = sumABCMin + additionalABC;
-            if (sumABC < targetABC) {
-                report.isValid = false;
-                report.messages.push(`Somma Tabelle A+B+C: Richiesti ${targetABC} CFU (Attuali: ${sumABC})`);
-            }
         }
+    });
 
-        if (report.totalCredits < common.total_credits) {
-            report.isValid = false;
-            report.messages.push(`Piano incompleto: ${report.totalCredits}/${common.total_credits} CFU`);
-        }
-
-        return report;
+    // Validazione messaggi base
+    if (report.tables['Obbligatori'].current < report.tables['Obbligatori'].min) {
+        report.isValid = false;
+        report.messages.push(`Obbligatori: Piano incompleto`);
     }
+    if (report.totalCredits < common.total_credits) {
+        report.isValid = false;
+        report.messages.push(`Totale: ${report.totalCredits}/${common.total_credits} CFU`);
+    }
+
+    return report;
+}
 
     initDefaults() {
         const mandatory = this.rules.degree_requirements.common_rules.mandatory_exams;

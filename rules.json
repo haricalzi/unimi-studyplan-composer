@@ -41,9 +41,9 @@
             "source": "C",
             "min_credits": 12
           },
-          {
-            "source": "ABC",
-            "additional_credits": 12
+          { 
+            "source": "BC", 
+            "min_sumBC_credits": 48 
           }
         ]
       }
