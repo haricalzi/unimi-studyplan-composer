@@ -266,6 +266,11 @@ validate() {
     return report;
 }
 
+reset() {
+    this.plan = [];
+    this.initDefaults();
+}
+
     initDefaults() {
         const mandatory = this.rules.degree_requirements.common_rules.mandatory_exams;
         mandatory.forEach(ex => {

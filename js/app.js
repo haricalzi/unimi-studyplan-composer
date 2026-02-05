@@ -257,7 +257,49 @@ createApp({
             }
         }
 
-        // Dentro setup()
+        function resetPlan() {
+            if (confirm("Sei sicuro di voler resettare il piano? Perderai tutte le selezioni effettuate.")) {
+                pm.value.reset();
+                refreshState();
+            }
+        }
+
+        function downloadCSV() {
+
+            function getType(item){
+                if (item.isCustom && item.table === 'Obbligatori') return "Mandatory";
+                if (item.isCustom) return "Extra";
+                return "Curricolar";
+            }
+
+            const exportData = state.plan.map(item => {
+                const originalExam = data.value.exams.find(e => e.id === item.examId);
+                return {
+                Exam: item.name,
+                CFU: item.cfu,
+                "4 month period": originalExam ? originalExam.period : 'N/D',
+                Table: item.table,
+                Pillar: originalExam ? originalExam.pillar : 'N/D',
+                SubPillar: originalExam ? originalExam.subpillar : 'N/D',
+                Type: getType(item),
+                Link: originalExam ? originalExam.link : '',
+            }});
+
+            // Utilizziamo PapaParse (già incluso nel progetto)
+            const csv = Papa.unparse(exportData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            const filename = `piano_studi_${state.curriculum}_${state.year.replace('/', '-')}.csv`;
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
 
         return {
@@ -282,7 +324,9 @@ createApp({
             getPillarStyle,
             getNextAvailability,
             getDisplayTables,
-            academicYears
+            academicYears,
+            resetPlan,
+            downloadCSV
         };
     }
 }).mount('#app');

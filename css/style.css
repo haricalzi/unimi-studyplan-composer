@@ -452,3 +452,20 @@ body {
 }
 
 .manual-form button:hover { opacity: 0.9; }
+
+/* Aggiungi in fondo a style.css */
+.btn-danger-soft {
+    color: var(--danger);
+    border-color: #fecaca; /* Un rosso molto chiaro */
+}
+
+.btn-danger-soft:hover {
+    background-color: #fef2f2 !important;
+    border-color: var(--danger) !important;
+}
+
+/* Opzionale: stile per disabilitare il download se il piano è vuoto */
+.btn-outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

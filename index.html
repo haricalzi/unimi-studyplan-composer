@@ -23,7 +23,7 @@
                 <div class="disclaimer-banner">
                     <i class="ph ph-warning-circle"></i>
                     <span>
-                        <b>Attenzione</b>: La disponibilità degli esami e le regole di composizione potrebbero non essere aggiornate. 
+                        <b>Attenzione</b>: La disponibilità degli esami e le regole di composizione potrebbero essere inesatte. 
                         È sempre buona norma ricontrollare gli esami e le regole ufficiali sul 
                         <a href="https://informatica-lm.cdl.unimi.it/it/insegnamenti/piano-didattico" target="_blank">sito web di Ateneo</a>. 
                         Questo tool è un supporto alla semplificazione e non sostituisce gli strumenti ufficiali.
@@ -164,9 +164,17 @@
                                 <span class="tag">{{ state.curriculum }}</span>
                                 <span class="tag">{{ state.year }}</span>
                             </div>
-                            <button class="btn-outline" @click="initialized = false">
-                                <i class="ph ph-gear"></i> Configura
-                            </button>
+                            <div class="matrix-actions" style="display: flex; gap: 0.5rem;">
+                                <button class="btn-outline" @click="downloadCSV" title="Scarica il piano in CSV">
+                                    <i class="ph ph-download-simple"></i> Scarica CSV
+                                </button>
+                                <button class="btn-outline btn-danger-soft" @click="resetPlan" title="Resetta tutto">
+                                    <i class="ph ph-arrow-counter-clockwise"></i> Reset
+                                </button>
+                                <button class="btn-outline" @click="initialized = false">
+                                    <i class="ph ph-gear"></i> Configura
+                                </button>
+                            </div>
                         </div>
 
                         <div class="matrix-grid">
