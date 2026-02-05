@@ -1,0 +1,16 @@
+Progettazione
+1) fare scegliere all'utente l'anno corrente (in questo modo possiamo sapere quali esami sono abilitati quest'anno, anche quelli disabilitati potranno comunque essere aggiunti). Alcuni esami non sono più erogati, o sono disponibili ad anni alterni oppure sono disponibili a partire da un certo anno in poi
+2) fare scegliere all'utente l'ordinamento (FBA per gli immatricolati dal 2025-2026) o quello vecchio (F94 per gli immatricolati dal 2014/2015 fino al 2024/2025), se sceglie FBA mostreremo il tag delle tabelle di FBA sugli esami, altrimenti il tag delle tabelle di f94.
+3) - per FBA: l'intersezione delle tabelle è un insieme vuoto, quindi facciamo scegliere gli esami e li aggiungiamo liberamente alla tabella corrispondente.
+   - per F94: l'intersezione delle tabelle non è un insieme vuoto, quindi se un esame è presente in più tabelle, lo aggiungiamo seguendo un ordine di priorità (tabella A, poi B, poi C).
+4) disponiamo di 2 tabelle aggiuntive sia per FBA che per F94 che saranno rispettivamente gli "Obbligatori" e i "Facoltativi", dove negli obbligatori il numero di CFU sarà 3 (inglese) + 39 (Tesi), mentre nei facoltativi sarà 12. Per entrambi (FBA e F94) i 12 CFU facoltativi sono sceglibili dalle seguenti tabelle (1, 2, A, B, C). NB: Gli esami presenti solo in FBA possono essere aggiunti anche dagli immatricolati F94 solo e solamente nella tabella facoltativi.
+
+Progettazione grafica
+prerequisiti: esiste il concetto di pillar tematico, gli esami sono catalogati in questi pillar. Non è detto che tutti gli esami appartengano ad un pillar.
+1) creiamo una griglia di quadratini, ogni riga rappresenta un pillar, ogni colonna rappresenta un quadrimestre, usiamo i colori per aiutarne la distinzione visiva.
+2) ogni quadratino riporterà il nome del corso e l'ordinamento di appartenenza.
+3) quando si stanno aggiungendo esami ad una data tabella, solo gli esami "papabili" per quella tabella saranno selezionabili e colorati.
+4) ogni esame deve avere un link che porta alla pagina del corso.
+5) per ogni esame aggiunto vogliamo vedere la progressione totale dei crediti e dei crediti minimi richiesti relativi a quella tabella.
+
+6) salviamo progressi etc.. nel local storage dell'utente, niente backend perchè girerà su github pages

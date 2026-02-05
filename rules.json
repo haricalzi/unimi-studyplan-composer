@@ -1,0 +1,51 @@
+{
+  "degree_requirements": {
+    "common_rules": {
+      "total_credits": 120,
+      "mandatory_exams": [
+        {
+          "name": "English Placement Test",
+          "credits": 3
+        },
+        {
+          "name": "Thesis",
+          "credits": 39
+        }
+      ]
+    },
+    "programs": {
+      "FBA": {
+        "curriculum_rules": [
+          {
+            "source": "1",
+            "min_credits": 12
+          },
+          {
+            "source": "2",
+            "min_credits": 54
+          }
+        ]
+      },
+      "F94": {
+        "curriculum_rules": [
+          {
+            "source": "A",
+            "min_credits": 18
+          },
+          {
+            "source": "B",
+            "min_credits": 30
+          },
+          {
+            "source": "C",
+            "min_credits": 12
+          },
+          {
+            "source": "ABC",
+            "additional_credits": 12
+          }
+        ]
+      }
+    }
+  }
+}
