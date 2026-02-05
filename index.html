@@ -60,7 +60,7 @@
       }
       body {
         /* Background gradient for glassmorphism effect */
-        background: radial-gradient(circle at top left, #e0f2fe, #f0f9ff, #f8fafc);
+        background: radial-gradient(circle at top left, #032f4d, #e4ecf1, #acd4fb);
         background-attachment: fixed;
       }
     </style>
@@ -258,7 +258,7 @@
                               v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1"
                               class="relative"
                             >
-                              <select
+                              <!-- <select
                                 :value="item.table"
                                 @change="movePlanItem(item.id, $event.target.value)"
                                 class="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 rounded px-1 py-0.5 cursor-pointer hover:bg-blue-100 focus:outline-none"
@@ -269,7 +269,7 @@
                                   :value="targetTable"
                                 >
                                   {{ t('move_to') }} {{ targetTable }}
-                                </option>
+                                </option> -->
                               </select>
                             </div>
                           </div>
@@ -282,7 +282,7 @@
                           <i class="ph ph-trash"></i>
                         </button>
                       </div>
-                      <div v-if="groupedPlan[table].length === 0" class="text-xs text-slate-400 italic text-center py-2">{{ t('no_exam_selected') }}</div>
+                      <!-- <div v-if="groupedPlan[table].length === 0" class="text-xs text-slate-400 italic text-center py-2">{{ t('no_exam_selected') }}</div> -->
                     </div>
 
                     <div v-if="table === 'Facoltativi'" class="px-2 pb-2">
@@ -441,7 +441,7 @@
 
         <footer class="bg-white/80 backdrop-blur border-t border-slate-200 py-3 px-6 text-xs text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
           <div class="flex items-center gap-2">
-            <p>© 2026 Roberto Tallarini • Jules, Gemini, Vue 3</p>
+            <p>© 2026 Roberto Tallarini • Jules, Gemini • Vue 3, Tailwind CSS</p>
           </div>
           <div class="flex gap-4">
             <a
