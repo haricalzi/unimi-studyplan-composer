@@ -1,5 +1,6 @@
 import { loadData } from "./data.js";
 import { PlanManager } from "./logic.js";
+import { t, currentLang, toggleLang } from "./i18n.js";
 
 const { createApp, ref, computed, reactive, onMounted, watch } = Vue;
 
@@ -9,6 +10,11 @@ createApp({
     const initialized = ref(false);
     const data = ref({ exams: [], rules: null });
     const pm = ref(null); // PlanManager instance
+
+    // Re-validate when language changes so messages update
+    watch(currentLang, () => {
+      refreshState();
+    });
 
     const currentYear = new Date().getFullYear();
     const academicYearDefault = `${currentYear - 1}/${currentYear}`;
@@ -107,7 +113,7 @@ createApp({
 
       // Restore from LS or defaults
       const savedState = localStorage.getItem("studyPlanState");
-      pm.value = new PlanManager(loaded.exams, loaded.rules);
+      pm.value = new PlanManager(loaded.exams, loaded.rules, t);
 
       if (savedState) {
         try {
@@ -251,7 +257,7 @@ createApp({
     }
 
     function getDisplayTables(exam) {
-      if (!exam.rawTable) return "Facoltativo";
+      if (!exam.rawTable) return t("Facoltativi");
 
       const currentCurriculum = state.curriculum;
       const allTables = exam.rawTable.split("|").map((t) => t.trim());
@@ -259,20 +265,16 @@ createApp({
       if (currentCurriculum === "F94") {
         // Filtra solo A, B, C
         const f94Tables = allTables.filter((t) => ["A", "B", "C"].includes(t));
-        return f94Tables.length > 0 ? f94Tables.join(" | ") : "Facoltativo";
+        return f94Tables.length > 0 ? f94Tables.join(" | ") : t("Facoltativi");
       } else {
         // Filtra solo 1, 2
         const fbaTables = allTables.filter((t) => ["1", "2"].includes(t));
-        return fbaTables.length > 0 ? fbaTables.join(" | ") : "Facoltativo";
+        return fbaTables.length > 0 ? fbaTables.join(" | ") : t("Facoltativi");
       }
     }
 
     function resetPlan() {
-      if (
-        confirm(
-          "Sei sicuro di voler resettare il piano? Perderai tutte le selezioni effettuate.",
-        )
-      ) {
+      if (confirm(t("reset_confirm"))) {
         pm.value.reset();
         refreshState();
       }
@@ -280,9 +282,9 @@ createApp({
 
     function downloadCSV() {
       function getType(item) {
-        if (item.isCustom && item.table === "Obbligatori") return "Mandatory";
-        if (item.isCustom) return "Extra";
-        return "Curricolar";
+        if (item.isCustom && item.table === "Obbligatori") return t("csv_mandatory");
+        if (item.isCustom) return t("csv_extra");
+        return t("csv_curricolar");
       }
 
       const exportData = state.plan.map((item) => {
@@ -340,6 +342,9 @@ createApp({
       academicYears,
       resetPlan,
       downloadCSV,
+      t,
+      currentLang,
+      toggleLang,
     };
   },
 }).mount("#app");

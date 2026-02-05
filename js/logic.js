@@ -1,7 +1,8 @@
 export class PlanManager {
-  constructor(exams, rules) {
+  constructor(exams, rules, t) {
     this.allExams = exams;
     this.rules = rules;
+    this.t = t || ((k) => k);
     this.year = "2025/2026";
     this.curriculum = "FBA";
     this.plan = [];
@@ -82,15 +83,15 @@ export class PlanManager {
     if (!avail || avail.toLowerCase() === "enabled") return null;
 
     if (avail.startsWith("From "))
-      return `Disponibile dal ${avail.replace("From ", "")}`;
+      return this.t("available_from", { date: avail.replace("From ", "") });
 
     if (avail.includes("Biennial")) {
       const currentStart = parseInt(this.year.split("/")[0]);
       const isEvenYear = currentStart % 2 === 0;
       if (avail.includes("Even") && !isEvenYear)
-        return "Prossima attivazione: Anni Pari (es. 2026/27)";
+        return this.t("next_activation_even");
       if (avail.includes("Odd") && isEvenYear)
-        return "Prossima attivazione: Anni Dispari (es. 2027/28)";
+        return this.t("next_activation_odd");
     }
     return avail;
   }
@@ -262,14 +263,16 @@ export class PlanManager {
         const currentBC =
           report.tables["B"].current + report.tables["C"].current;
         report.specialRules.push({
-          label: "Somma Tabelle B + C",
+          label: this.t("sum_bc_label"),
           current: currentBC,
           min: rule.min_sumBC_credits,
         });
         if (currentBC < rule.min_sumBC_credits) {
           report.isValid = false;
           report.messages.push(
-            `Somma delle tabelle B e C insufficiente: mancano ${rule.min_sumBC_credits - currentBC} CFU`,
+            this.t("sum_bc_missing", {
+              missing: rule.min_sumBC_credits - currentBC,
+            }),
           );
         }
       } else {
@@ -279,7 +282,10 @@ export class PlanManager {
           if (report.tables[t].current < rule.min_credits) {
             report.isValid = false;
             report.messages.push(
-              `Tabella ${t}: Mancano ${rule.min_credits - report.tables[t].current} CFU`,
+              this.t("table_missing_cfu", {
+                table: t,
+                missing: rule.min_credits - report.tables[t].current,
+              }),
             );
           }
         }
@@ -291,12 +297,15 @@ export class PlanManager {
       report.tables["Obbligatori"].current < report.tables["Obbligatori"].min
     ) {
       report.isValid = false;
-      report.messages.push(`Obbligatori: Piano incompleto`);
+      report.messages.push(this.t("mandatory_incomplete"));
     }
     if (report.totalCredits < common.total_credits) {
       report.isValid = false;
       report.messages.push(
-        `Totale: ${report.totalCredits}/${common.total_credits} CFU`,
+        this.t("total_cfu_status", {
+          current: report.totalCredits,
+          min: common.total_credits,
+        }),
       );
     }
 

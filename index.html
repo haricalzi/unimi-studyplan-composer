@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html :lang="currentLang">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,7 +13,7 @@
     <div id="app">
       <div v-if="loading" class="onboarding-overlay">
         <div class="onboarding-card">
-          <h2>Caricamento dati...</h2>
+          <h2>{{ t('loading') }}</h2>
         </div>
       </div>
 
@@ -22,27 +22,27 @@
           <div class="disclaimer-banner">
             <i class="ph ph-warning-circle"></i>
             <span>
-              <b>Attenzione</b>: La disponibilità degli esami e le regole di
-              composizione potrebbero essere inesatte. È sempre buona norma
-              ricontrollare gli esami e le regole ufficiali sul
+              <b>{{ t('attention') }}</b>: {{ t('disclaimer') }}
               <a
                 href="https://informatica-lm.cdl.unimi.it/it/insegnamenti/piano-didattico"
                 target="_blank"
-                >sito web di Ateneo</a
-              >. Questo tool è un supporto alla semplificazione e non
-              sostituisce gli strumenti ufficiali.
+                >{{ t('ateneo_website') }}</a
+              >. {{ t('disclaimer_suffix') }}
             </span>
+            <button class="btn-outline" style="margin-left: auto; padding: 0.2rem 0.5rem; font-size: 0.75rem;" @click="toggleLang">
+              {{ currentLang === 'it' ? 'EN' : 'IT' }}
+            </button>
           </div>
         </header>
 
         <main class="app-content">
           <div v-if="!initialized" class="onboarding-overlay-inner">
             <div class="onboarding-card">
-              <h2>Configura il tuo Piano</h2>
-              <p>Seleziona l'anno di riferimento e il tuo ordinamento.</p>
+              <h2>{{ t('configure_plan') }}</h2>
+              <p>{{ t('select_year_curriculum') }}</p>
 
               <div class="form-group">
-                <label>Anno Accademico corrente</label>
+                <label>{{ t('current_academic_year') }}</label>
                 <select v-model="state.year">
                   <option
                     v-for="year in academicYears"
@@ -55,17 +55,17 @@
               </div>
 
               <div class="form-group">
-                <label>Ordinamento</label>
+                <label>{{ t('curriculum') }}</label>
                 <select v-model="state.curriculum">
-                  <option value="FBA">FBA (Immatricolati dal 2025/26)</option>
+                  <option value="FBA">{{ t('fba_description') }}</option>
                   <option value="F94">
-                    F94 (Immatricolati dal 2014/15 al 2024/25)
+                    {{ t('f94_description') }}
                   </option>
                 </select>
               </div>
 
               <button class="btn" @click="startPlan">
-                Inizia la composizione
+                {{ t('start_composition') }}
               </button>
             </div>
           </div>
@@ -73,10 +73,10 @@
           <div v-else class="app-body">
             <aside class="sidebar">
               <div class="stats-panel">
-                <h2>Il tuo Piano</h2>
+                <h2>{{ t('your_plan') }}</h2>
                 <div class="progress-item">
                   <div class="progress-label">
-                    <span>Totale CFU Ufficiali</span>
+                    <span>{{ t('total_cfu_official') }}</span>
                     <span>{{ state.validation.totalCredits }} / 120</span>
                   </div>
                   <div class="progress-bar">
@@ -130,7 +130,7 @@
                   >
                     <div class="bucket-title">
                       <span
-                        >{{ table.length === 1 ? 'Tabella ' : '' }}{{ table
+                        >{{ table.length === 1 ? t('table') + ' ' : '' }}{{ t(table)
                         }}</span
                       >
                       <span
@@ -177,11 +177,11 @@
                               @change="movePlanItem(item.id, $event.target.value)"
                             >
                               <option
-                                v-for="t in getPossibleTables(item)"
-                                :key="t"
-                                :value="t"
+                                v-for="targetTable in getPossibleTables(item)"
+                                :key="targetTable"
+                                :value="targetTable"
                               >
-                                Sposta in {{ t }}
+                                {{ t('move_to') }} {{ targetTable }}
                               </option>
                             </select>
                           </div>
@@ -200,13 +200,12 @@
                     <div v-if="table === 'Facoltativi'" class="manual-add">
                       <details class="ghost-details">
                         <summary>
-                          <i class="ph ph-plus-circle"></i> Aggiungi esame
-                          esterno
+                          <i class="ph ph-plus-circle"></i> {{ t('add_external_exam') }}
                         </summary>
                         <div class="manual-form">
                           <input
                             type="text"
-                            placeholder="Nome esame..."
+                            :placeholder="t('exam_name_placeholder')"
                             v-model="state.newExamName"
                             @keyup.enter="addCustom"
                           />
@@ -214,7 +213,7 @@
                             type="number"
                             v-model.number="state.newExamCFU"
                           />
-                          <button @click="addCustom">OK</button>
+                          <button @click="addCustom">{{ t('ok') }}</button>
                         </div>
                       </details>
                     </div>
@@ -226,7 +225,7 @@
             <section class="matrix-container">
               <div class="matrix-header-bar">
                 <div class="matrix-title">
-                  <h1>Esami | Informatica Magistrale</h1>
+                  <h1>{{ t('main_title') }}</h1>
                   <span class="tag">{{ state.curriculum }}</span>
                   <span class="tag">{{ state.year }}</span>
                 </div>
@@ -235,7 +234,7 @@
                   <input
                     type="text"
                     v-model="state.searchQuery"
-                    placeholder="Cerca esame per nome..."
+                    :placeholder="t('search_placeholder')"
                     class="search-input"
                   />
                   <button
@@ -250,28 +249,28 @@
                   <button
                     class="btn-outline"
                     @click="downloadCSV"
-                    title="Scarica il piano in CSV"
+                    :title="t('download_csv')"
                   >
-                    <i class="ph ph-download-simple"></i> Scarica CSV
+                    <i class="ph ph-download-simple"></i> {{ t('download_csv') }}
                   </button>
                   <button
                     class="btn-outline btn-danger-soft"
                     @click="resetPlan"
-                    title="Resetta tutto"
+                    :title="t('reset_title')"
                   >
-                    <i class="ph ph-arrow-counter-clockwise"></i> Reset
+                    <i class="ph ph-arrow-counter-clockwise"></i> {{ t('reset') }}
                   </button>
                   <button class="btn-outline" @click="initialized = false">
-                    <i class="ph ph-gear"></i> Configura
+                    <i class="ph ph-gear"></i> {{ t('configure') }}
                   </button>
                 </div>
               </div>
 
               <div class="matrix-grid">
-                <div class="matrix-header sticky-col">Pillar / Subpillar</div>
-                <div class="matrix-header">Quadrimestre 1</div>
-                <div class="matrix-header">Quadrimestre 2</div>
-                <div class="matrix-header">Quadrimestre 3</div>
+                <div class="matrix-header sticky-col">{{ t('pillar_header') }}</div>
+                <div class="matrix-header">{{ t('q1') }}</div>
+                <div class="matrix-header">{{ t('q2') }}</div>
+                <div class="matrix-header">{{ t('q3') }}</div>
 
                 <template v-for="pillar in matrix" :key="pillar.name">
                   <div
@@ -314,7 +313,7 @@
                         <div class="exam-actions">
                           <span
                             class="tag-table"
-                            :class="{ 'tag-optional': getDisplayTables(exam) === 'Facoltativo' }"
+                            :class="{ 'tag-optional': getDisplayTables(exam) === t('Facoltativi') }"
                           >
                             {{ getDisplayTables(exam) }}
                           </span>
@@ -344,13 +343,13 @@
                 href="https://github.com/rob00t-unimi/unimi-studyplan-composer"
                 target="_blank"
               >
-                <i class="ph ph-github-logo"></i> Repo
+                <i class="ph ph-github-logo"></i> {{ t('footer_repo') }}
               </a>
               <a
                 href="https://rob00t-unimi.github.io/Portfolio/"
                 target="_blank"
               >
-                <i class="ph ph-user"></i> Portfolio
+                <i class="ph ph-user"></i> {{ t('footer_portfolio') }}
               </a>
             </div>
           </div>
