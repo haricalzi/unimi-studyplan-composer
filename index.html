@@ -164,6 +164,18 @@
                                 <span class="tag">{{ state.curriculum }}</span>
                                 <span class="tag">{{ state.year }}</span>
                             </div>
+                            <div class="search-container">
+                                <i class="ph ph-magnifying-glass"></i>
+                                <input 
+                                    type="text" 
+                                    v-model="state.searchQuery" 
+                                    placeholder="Cerca esame per nome..."
+                                    class="search-input"
+                                >
+                                <button v-if="state.searchQuery" @click="state.searchQuery = ''" class="search-clear">
+                                    <i class="ph ph-x-circle"></i>
+                                </button>
+                            </div>
                             <div class="matrix-actions" style="display: flex; gap: 0.5rem;">
                                 <button class="btn-outline" @click="downloadCSV" title="Scarica il piano in CSV">
                                     <i class="ph ph-download-simple"></i> Scarica CSV

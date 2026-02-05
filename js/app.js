@@ -20,8 +20,9 @@ createApp({
             curriculum: 'FBA',
             plan: [],
             validation: {},
-            newExamName: '', // <--- Aggiunto
-            newExamCFU: 6    // <--- Aggiunto
+            newExamName: '',
+            newExamCFU: 6,
+            searchQuery: '' // <--- AGGIUNTO: stringa di ricerca
         });
 
         const pillars = computed(() => {
@@ -30,33 +31,38 @@ createApp({
             return Array.from(p).sort();
         });
 
-        const matrix = computed(() => {
-            if (!data.value.exams) return [];
+const matrix = computed(() => {
+    if (!data.value.exams) return [];
 
-            const pMap = {};
+    const pMap = {};
+    const query = state.searchQuery.toLowerCase().trim();
 
-            data.value.exams.forEach(e => {
-                const pName = e.pillar || 'Other';
-                const sName = e.subpillar || 'General';
-                
-                if (!pMap[pName]) pMap[pName] = {};
-                if (!pMap[pName][sName]) pMap[pName][sName] = { 1: [], 2: [], 3: [] };
-                
-                pMap[pName][sName][e.period].push(e);
-            });
+    // Filtriamo gli esami prima di raggrupparli
+    const filteredExams = data.value.exams.filter(e => {
+        return e.name.toLowerCase().includes(query);
+    });
 
-            // Trasformiamo la mappa in un array ordinato per il template
-            return Object.keys(pMap).sort().map(pName => ({
-                name: pName,
-                subpillars: Object.keys(pMap[pName]).sort().map(sName => ({
-                    name: sName,
-                    periods: [1, 2, 3].map(pId => ({
-                        id: pId,
-                        exams: pMap[pName][sName][pId].sort((a, b) => a.name.localeCompare(b.name))
-                    }))
-                }))
-            }));
-        });
+    filteredExams.forEach(e => {
+        const pName = e.pillar || 'Other';
+        const sName = e.subpillar || 'General';
+        
+        if (!pMap[pName]) pMap[pName] = {};
+        if (!pMap[pName][sName]) pMap[pName][sName] = { 1: [], 2: [], 3: [] };
+        
+        pMap[pName][sName][e.period].push(e);
+    });
+
+    return Object.keys(pMap).sort().map(pName => ({
+        name: pName,
+        subpillars: Object.keys(pMap[pName]).sort().map(sName => ({
+            name: sName,
+            periods: [1, 2, 3].map(pId => ({
+                id: pId,
+                exams: pMap[pName][sName][pId].sort((a, b) => a.name.localeCompare(b.name))
+            }))
+        }))
+    }));
+});
 
         const sortedTables = computed(() => {
             if (state.curriculum === 'FBA') {
