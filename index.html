@@ -1,258 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Composizione Piano di Studi</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div id="app">
-        <div v-if="loading" class="onboarding-overlay">
-            <div class="onboarding-card">
-                <h2>Caricamento dati...</h2>
-            </div>
+      <div v-if="loading" class="onboarding-overlay">
+        <div class="onboarding-card">
+          <h2>Caricamento dati...</h2>
         </div>
+      </div>
 
-        <div v-else class="main-layout">
-            
-            <header class="app-header">
-                <div class="disclaimer-banner">
-                    <i class="ph ph-warning-circle"></i>
-                    <span>
-                        <b>Attenzione</b>: La disponibilità degli esami e le regole di composizione potrebbero essere inesatte. 
-                        È sempre buona norma ricontrollare gli esami e le regole ufficiali sul 
-                        <a href="https://informatica-lm.cdl.unimi.it/it/insegnamenti/piano-didattico" target="_blank">sito web di Ateneo</a>. 
-                        Questo tool è un supporto alla semplificazione e non sostituisce gli strumenti ufficiali.
-                    </span>
-                </div>
-            </header>
-
-            <main class="app-content">
-                
-                <div v-if="!initialized" class="onboarding-overlay-inner">
-                    <div class="onboarding-card">
-                        <h2>Configura il tuo Piano</h2>
-                        <p>Seleziona l'anno di riferimento e il tuo ordinamento.</p>
-
-                        <div class="form-group">
-                            <label>Anno Accademico corrente</label>
-                            <select v-model="state.year">
-                                <option v-for="year in academicYears" :key="year" :value="year">
-                                    {{ year }}
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Ordinamento</label>
-                            <select v-model="state.curriculum">
-                                <option value="FBA">FBA (Immatricolati dal 2025/26)</option>
-                                <option value="F94">F94 (Immatricolati dal 2014/15 al 2024/25)</option>
-                            </select>
-                        </div>
-
-                        <button class="btn" @click="startPlan">Inizia la composizione</button>
-                    </div>
-                </div>
-
-                <div v-else class="app-body">
-                    
-                    <aside class="sidebar">
-                        <div class="stats-panel">
-                            <h2>Il tuo Piano</h2>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Totale CFU Ufficiali</span>
-                                    <span>{{ state.validation.totalCredits }} / 120</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill"
-                                        :class="{ valid: state.validation.isValid, invalid: !state.validation.isValid }"
-                                        :style="{ width: Math.min((state.validation.totalCredits / 120) * 100, 100) + '%' }">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-if="state.validation.specialRules && state.validation.specialRules.length > 0">
-    <div v-for="rule in state.validation.specialRules" :key="rule.label" class="progress-item special-rule-item">
-        <div class="progress-label">
-            <span>{{ rule.label }}</span>
-            <span>{{ rule.current }} / {{ rule.min }}</span>
-        </div>
-        <div class="progress-bar mini">
-            <div class="bucket-progress-fill special"
-                 :class="{ complete: rule.current >= rule.min }"
-                 :style="{ width: Math.min((rule.current / rule.min) * 100, 100) + '%' }">
-            </div>
-        </div>
-    </div>
-</div>
-
-                            <div v-if="state.validation.messages.length > 0" class="validation-messages">
-                                <div v-for="msg in state.validation.messages" :key="msg">• {{ msg }}</div>
-                            </div>
-                        </div>
-
-                        <div class="buckets">
-<div class="buckets">
-    <div v-for="table in sortedTables" :key="table" class="bucket-section" :class="{ 'extra-section': table === 'Fuori Piano' }">
-        
-        <div class="bucket-title">
-            <span>{{ table.length === 1 ? 'Tabella ' : '' }}{{ table }}</span>
-            <span v-if="state.validation.tables[table]" class="bucket-credits">
-                {{ state.validation.tables[table].current }}
-                <span v-if="state.validation.tables[table].min">/ {{ state.validation.tables[table].min }}</span> CFU
+      <div v-else class="main-layout">
+        <header class="app-header">
+          <div class="disclaimer-banner">
+            <i class="ph ph-warning-circle"></i>
+            <span>
+              <b>Attenzione</b>: La disponibilità degli esami e le regole di
+              composizione potrebbero essere inesatte. È sempre buona norma
+              ricontrollare gli esami e le regole ufficiali sul
+              <a
+                href="https://informatica-lm.cdl.unimi.it/it/insegnamenti/piano-didattico"
+                target="_blank"
+                >sito web di Ateneo</a
+              >. Questo tool è un supporto alla semplificazione e non
+              sostituisce gli strumenti ufficiali.
             </span>
-        </div>
+          </div>
+        </header>
 
-        <div v-if="state.validation.tables[table] && state.validation.tables[table].min > 0" class="bucket-progress-wrapper">
-            <div class="bucket-progress-bar">
-                <div class="bucket-progress-fill" 
-                     :class="{ complete: state.validation.tables[table].current >= state.validation.tables[table].min }"
-                     :style="{ width: Math.min((state.validation.tables[table].current / state.validation.tables[table].min) * 100, 100) + '%' }">
-                </div>
+        <main class="app-content">
+          <div v-if="!initialized" class="onboarding-overlay-inner">
+            <div class="onboarding-card">
+              <h2>Configura il tuo Piano</h2>
+              <p>Seleziona l'anno di riferimento e il tuo ordinamento.</p>
+
+              <div class="form-group">
+                <label>Anno Accademico corrente</label>
+                <select v-model="state.year">
+                  <option
+                    v-for="year in academicYears"
+                    :key="year"
+                    :value="year"
+                  >
+                    {{ year }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Ordinamento</label>
+                <select v-model="state.curriculum">
+                  <option value="FBA">FBA (Immatricolati dal 2025/26)</option>
+                  <option value="F94">
+                    F94 (Immatricolati dal 2014/15 al 2024/25)
+                  </option>
+                </select>
+              </div>
+
+              <button class="btn" @click="startPlan">
+                Inizia la composizione
+              </button>
             </div>
-        </div>
+          </div>
 
-        <div class="bucket-items">
-            <div v-for="item in groupedPlan[table]" :key="item.id" class="plan-item">
-                <div class="plan-item-info">
-                    <div class="plan-item-name">{{ item.name }}</div>
-                    <div class="plan-item-meta">{{ item.cfu }} CFU</div>
-
-                    <div v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1" class="move-selector">
-                        <select :value="item.table" @change="movePlanItem(item.id, $event.target.value)">
-                            <option v-for="t in getPossibleTables(item)" :key="t" :value="t">Sposta in {{ t }}</option>
-                        </select>
-                    </div>
+          <div v-else class="app-body">
+            <aside class="sidebar">
+              <div class="stats-panel">
+                <h2>Il tuo Piano</h2>
+                <div class="progress-item">
+                  <div class="progress-label">
+                    <span>Totale CFU Ufficiali</span>
+                    <span>{{ state.validation.totalCredits }} / 120</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :class="{ valid: state.validation.isValid, invalid: !state.validation.isValid }"
+                      :style="{ width: Math.min((state.validation.totalCredits / 120) * 100, 100) + '%' }"
+                    ></div>
+                  </div>
                 </div>
-                <button v-if="table !== 'Obbligatori'" class="remove-btn" @click="removePlanItem(item.id)">
-                    <i class="ph ph-trash"></i>
-                </button>
+
+                <div
+                  v-if="state.validation.specialRules && state.validation.specialRules.length > 0"
+                >
+                  <div
+                    v-for="rule in state.validation.specialRules"
+                    :key="rule.label"
+                    class="progress-item special-rule-item"
+                  >
+                    <div class="progress-label">
+                      <span>{{ rule.label }}</span>
+                      <span>{{ rule.current }} / {{ rule.min }}</span>
+                    </div>
+                    <div class="progress-bar mini">
+                      <div
+                        class="bucket-progress-fill special"
+                        :class="{ complete: rule.current >= rule.min }"
+                        :style="{ width: Math.min((rule.current / rule.min) * 100, 100) + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  v-if="state.validation.messages.length > 0"
+                  class="validation-messages"
+                >
+                  <div v-for="msg in state.validation.messages" :key="msg">
+                    • {{ msg }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="buckets">
+                <div class="buckets">
+                  <div
+                    v-for="table in sortedTables"
+                    :key="table"
+                    class="bucket-section"
+                    :class="{ 'extra-section': table === 'Fuori Piano' }"
+                  >
+                    <div class="bucket-title">
+                      <span
+                        >{{ table.length === 1 ? 'Tabella ' : '' }}{{ table
+                        }}</span
+                      >
+                      <span
+                        v-if="state.validation.tables[table]"
+                        class="bucket-credits"
+                      >
+                        {{ state.validation.tables[table].current }}
+                        <span v-if="state.validation.tables[table].min"
+                          >/ {{ state.validation.tables[table].min }}</span
+                        >
+                        CFU
+                      </span>
+                    </div>
+
+                    <div
+                      v-if="state.validation.tables[table] && state.validation.tables[table].min > 0"
+                      class="bucket-progress-wrapper"
+                    >
+                      <div class="bucket-progress-bar">
+                        <div
+                          class="bucket-progress-fill"
+                          :class="{ complete: state.validation.tables[table].current >= state.validation.tables[table].min }"
+                          :style="{ width: Math.min((state.validation.tables[table].current / state.validation.tables[table].min) * 100, 100) + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="bucket-items">
+                      <div
+                        v-for="item in groupedPlan[table]"
+                        :key="item.id"
+                        class="plan-item"
+                      >
+                        <div class="plan-item-info">
+                          <div class="plan-item-name">{{ item.name }}</div>
+                          <div class="plan-item-meta">{{ item.cfu }} CFU</div>
+
+                          <div
+                            v-if="state.curriculum === 'F94' && !item.isCustom && getPossibleTables(item).length > 1"
+                            class="move-selector"
+                          >
+                            <select
+                              :value="item.table"
+                              @change="movePlanItem(item.id, $event.target.value)"
+                            >
+                              <option
+                                v-for="t in getPossibleTables(item)"
+                                :key="t"
+                                :value="t"
+                              >
+                                Sposta in {{ t }}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                        <button
+                          v-if="table !== 'Obbligatori'"
+                          class="remove-btn"
+                          @click="removePlanItem(item.id)"
+                        >
+                          <i class="ph ph-trash"></i>
+                        </button>
+                      </div>
+                      <!-- <div v-if="groupedPlan[table].length === 0" class="empty-msg">Nessun esame selezionato.</div> -->
+                    </div>
+
+                    <div v-if="table === 'Facoltativi'" class="manual-add">
+                      <details class="ghost-details">
+                        <summary>
+                          <i class="ph ph-plus-circle"></i> Aggiungi esame
+                          esterno
+                        </summary>
+                        <div class="manual-form">
+                          <input
+                            type="text"
+                            placeholder="Nome esame..."
+                            v-model="state.newExamName"
+                            @keyup.enter="addCustom"
+                          />
+                          <input
+                            type="number"
+                            v-model.number="state.newExamCFU"
+                          />
+                          <button @click="addCustom">OK</button>
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            <section class="matrix-container">
+              <div class="matrix-header-bar">
+                <div class="matrix-title">
+                  <h1>Esami | Informatica Magistrale</h1>
+                  <span class="tag">{{ state.curriculum }}</span>
+                  <span class="tag">{{ state.year }}</span>
+                </div>
+                <div class="search-container">
+                  <i class="ph ph-magnifying-glass"></i>
+                  <input
+                    type="text"
+                    v-model="state.searchQuery"
+                    placeholder="Cerca esame per nome..."
+                    class="search-input"
+                  />
+                  <button
+                    v-if="state.searchQuery"
+                    @click="state.searchQuery = ''"
+                    class="search-clear"
+                  >
+                    <i class="ph ph-x-circle"></i>
+                  </button>
+                </div>
+                <div class="matrix-actions" style="display: flex; gap: 0.5rem">
+                  <button
+                    class="btn-outline"
+                    @click="downloadCSV"
+                    title="Scarica il piano in CSV"
+                  >
+                    <i class="ph ph-download-simple"></i> Scarica CSV
+                  </button>
+                  <button
+                    class="btn-outline btn-danger-soft"
+                    @click="resetPlan"
+                    title="Resetta tutto"
+                  >
+                    <i class="ph ph-arrow-counter-clockwise"></i> Reset
+                  </button>
+                  <button class="btn-outline" @click="initialized = false">
+                    <i class="ph ph-gear"></i> Configura
+                  </button>
+                </div>
+              </div>
+
+              <div class="matrix-grid">
+                <div class="matrix-header sticky-col">Pillar / Subpillar</div>
+                <div class="matrix-header">Quadrimestre 1</div>
+                <div class="matrix-header">Quadrimestre 2</div>
+                <div class="matrix-header">Quadrimestre 3</div>
+
+                <template v-for="pillar in matrix" :key="pillar.name">
+                  <div
+                    class="pillar-group-row"
+                    :style="getPillarStyle(pillar.name)"
+                  >
+                    {{ pillar.name }}
+                  </div>
+
+                  <template v-for="sub in pillar.subpillars" :key="sub.name">
+                    <div class="subpillar-row-header sticky-col">
+                      {{ sub.name }}
+                    </div>
+                    <div
+                      v-for="period in sub.periods"
+                      :key="period.id"
+                      class="matrix-cell"
+                    >
+                      <div
+                        v-for="exam in period.exams"
+                        :key="exam.id"
+                        class="exam-card"
+                        :class="getExamStatusClass(exam)"
+                        :style="getPillarStyle(pillar.name)"
+                        @click="toggleExam(exam)"
+                      >
+                        <div class="exam-info">
+                          <span class="exam-name">{{ exam.name }}</span>
+                          <a
+                            v-if="exam.link"
+                            :href="exam.link"
+                            target="_blank"
+                            @click.stop
+                            class="exam-link"
+                          >
+                            <i class="ph ph-arrow-square-out"></i>
+                          </a>
+                        </div>
+                        <div class="exam-cfu">{{ exam.cfu }} CFU</div>
+                        <div class="exam-actions">
+                          <span
+                            class="tag-table"
+                            :class="{ 'tag-optional': getDisplayTables(exam) === 'Facoltativo' }"
+                          >
+                            {{ getDisplayTables(exam) }}
+                          </span>
+                          <div
+                            v-if="!isAvailable(exam)"
+                            class="availability-warning"
+                          >
+                            <i class="ph ph-calendar-blank"></i>
+                            {{ getNextAvailability(exam) }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </template>
+              </div>
+            </section>
+          </div>
+        </main>
+        <footer class="app-footer">
+          <div class="footer-container">
+            <div class="footer-info">
+              <p>© 2026 Roberto Tallarini • Jules, Gemini, Vue 3</p>
             </div>
-            <!-- <div v-if="groupedPlan[table].length === 0" class="empty-msg">Nessun esame selezionato.</div> -->
-        </div>
-
-        <div v-if="table === 'Facoltativi'" class="manual-add">
-            <details class="ghost-details">
-                <summary>
-                    <i class="ph ph-plus-circle"></i> Aggiungi esame esterno
-                </summary>
-                <div class="manual-form">
-                    <input type="text" 
-                        placeholder="Nome esame..." 
-                        v-model="state.newExamName"
-                        @keyup.enter="addCustom"> <input type="number" 
-                        v-model.number="state.newExamCFU">
-                    <button @click="addCustom">OK</button>
-                </div>
-            </details>
-        </div>
-    </div>
-</div>
-                        </div>
-                    </aside>
-
-                    <section class="matrix-container">
-                        <div class="matrix-header-bar">
-                            <div class="matrix-title">
-                                <h1>Esami | Informatica Magistrale</h1>
-                                <span class="tag">{{ state.curriculum }}</span>
-                                <span class="tag">{{ state.year }}</span>
-                            </div>
-                            <div class="search-container">
-                                <i class="ph ph-magnifying-glass"></i>
-                                <input 
-                                    type="text" 
-                                    v-model="state.searchQuery" 
-                                    placeholder="Cerca esame per nome..."
-                                    class="search-input"
-                                >
-                                <button v-if="state.searchQuery" @click="state.searchQuery = ''" class="search-clear">
-                                    <i class="ph ph-x-circle"></i>
-                                </button>
-                            </div>
-                            <div class="matrix-actions" style="display: flex; gap: 0.5rem;">
-                                <button class="btn-outline" @click="downloadCSV" title="Scarica il piano in CSV">
-                                    <i class="ph ph-download-simple"></i> Scarica CSV
-                                </button>
-                                <button class="btn-outline btn-danger-soft" @click="resetPlan" title="Resetta tutto">
-                                    <i class="ph ph-arrow-counter-clockwise"></i> Reset
-                                </button>
-                                <button class="btn-outline" @click="initialized = false">
-                                    <i class="ph ph-gear"></i> Configura
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="matrix-grid">
-                            <div class="matrix-header sticky-col">Pillar / Subpillar</div>
-                            <div class="matrix-header">Quadrimestre 1</div>
-                            <div class="matrix-header">Quadrimestre 2</div>
-                            <div class="matrix-header">Quadrimestre 3</div>
-
-                            <template v-for="pillar in matrix" :key="pillar.name">
-                                <div class="pillar-group-row" :style="getPillarStyle(pillar.name)">
-                                    {{ pillar.name }}
-                                </div>
-
-                                <template v-for="sub in pillar.subpillars" :key="sub.name">
-                                    <div class="subpillar-row-header sticky-col">
-                                        {{ sub.name }}
-                                    </div>
-                                    <div v-for="period in sub.periods" :key="period.id" class="matrix-cell">
-                                        <div v-for="exam in period.exams" :key="exam.id"
-                                            class="exam-card"
-                                            :class="getExamStatusClass(exam)"
-                                            :style="getPillarStyle(pillar.name)"
-                                            @click="toggleExam(exam)">
-
-                                            <div class="exam-info">
-                                                <span class="exam-name">{{ exam.name }}</span>
-                                                <a v-if="exam.link" :href="exam.link" target="_blank" @click.stop class="exam-link">
-                                                    <i class="ph ph-arrow-square-out"></i>
-                                                </a>
-                                            </div>
-                                            <div class="exam-cfu">{{ exam.cfu }} CFU</div>
-                                            <div class="exam-actions">
-                                                <span class="tag-table" :class="{ 'tag-optional': getDisplayTables(exam) === 'Facoltativo' }">
-                                                    {{ getDisplayTables(exam) }}
-                                                </span>
-                                                <div v-if="!isAvailable(exam)" class="availability-warning">
-                                                    <i class="ph ph-calendar-blank"></i>
-                                                    {{ getNextAvailability(exam) }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </template>
-                        </div>
-                    </section>
-                </div>
-            </main>
-            <footer class="app-footer">
-                <div class="footer-container">
-                    <div class="footer-info">
-                        <p>© 2026 Roberto Tallarini • Vue 3</p>
-                    </div>
-                    <div class="footer-links">
-                        <a href="https://github.com/rob00t-unimi/unimi-studyplan-composer" target="_blank">
-                            <i class="ph ph-github-logo"></i> Repo
-                        </a>
-                        <a href="https://rob00t-unimi.github.io/Portfolio/" target="_blank">
-                            <i class="ph ph-user"></i> Portfolio
-                        </a>
-                    </div>
-                </div>
-            </footer>
-        </div>
+            <div class="footer-links">
+              <a
+                href="https://github.com/rob00t-unimi/unimi-studyplan-composer"
+                target="_blank"
+              >
+                <i class="ph ph-github-logo"></i> Repo
+              </a>
+              <a
+                href="https://rob00t-unimi.github.io/Portfolio/"
+                target="_blank"
+              >
+                <i class="ph ph-user"></i> Portfolio
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
 
     <script type="module" src="js/app.js"></script>
-</body>
+  </body>
 </html>
