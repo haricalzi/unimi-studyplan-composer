@@ -28,8 +28,7 @@ Geometria computazionale,https://www.unimi.it/it/ugov/of/af20260000fba-68,6,ITA,
 Geospatial data management,https://www.unimi.it/it/ugov/of/af202600000fba-1,6,ENG,3,FBA,2,ING-INF/05,"ARTIFICIAL INTELLIGENCE, DATA ANALYTICS AND BIG DATA",Data Management and Protection,From 2026/2027
 Gestione della sicurezza nelle imprese,https://www.unimi.it/it/ugov/of/af20260000fba-67,6,ITA,2,FBA,1,SECS-P/08,"COMPUTING SYSTEMS IN INDUSTRY, BUSINESS AND MEDICINE",Security,enabled
 Gpu computing,https://www.unimi.it/it/ugov/of/af20260000fba-40,6,ITA,2,F94|FBA,C|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Software,enabled
-Heuristic algorithms,https://www.unimi.it/it/ugov/of/af20260000f94-85,6,ENG,2,F94,B,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Algorithms,enabled
-Heuristics algorithms,https://www.unimi.it/it/ugov/of/af20260000fba-39,6,ENG,2,FBA,2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Algorithms,enabled
+Heuristics algorithms,https://www.unimi.it/it/ugov/of/af20260000fba-39,6,ENG,2,FBA,B|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Algorithms,enabled
 Informatica teorica,https://www.unimi.it/it/ugov/of/af20260000fba-38,6,ITA,1,F94|FBA,A|B|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Theory,enabled
 Information management,https://www.unimi.it/it/ugov/of/af20260000fba-37,6,ENG,3,"F94, FBA",A|B|1,INF/01,"ARTIFICIAL INTELLIGENCE, DATA ANALYTICS AND BIG DATA",Data Management and Protection,enabled
 Intelligent systems for industry  supply chain and environment,https://www.unimi.it/it/ugov/of/af20260000fba-36,6,ENG,3,"F94, FBA",B|1,INF/01,"COMPUTING SYSTEMS IN INDUSTRY, BUSINESS AND MEDICINE",Industry and Business,enabled
@@ -77,6 +76,6 @@ Visione artificiale,https://www.unimi.it/it/ugov/of/af20260000fba-42,6,ITA,2,F94
 Web programming for sound and music,https://www.unimi.it/it/ugov/of/af20260000fba-41,6,ITA,3,FBA,2,INF/01,INTERACTION AND MULTIMEDIA,Audio and Music,enabled
 Progettazione di sistemi operativi sicuri,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/progettazione-di-sistemi-operativi-sicuri,6,ITA,,FBA,,,"COMPUTING SYSTEMS IN INDUSTRY, BUSINESS AND MEDICINE",Security,From 2028/29
 Natural Interaction,https://myariel.unimi.it/course/view.php?id=4516,6,ENG,,F94|FBA,A|B|,,INTERACTION AND MULTIMEDIA,Imaging and Video,From 2028/29
-TECNICHE DI PROTEZIONE DEL SOFTWARE,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/tecniche-di-protezione-del-software-0,6,ITA,2,F94|FBA,B|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Software,enabled
-MODELLAZIONE E ANALISI DI SISTEMI,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/modellazione-e-analisi-di-sistemi,6,ITA,2,F94|FBA,C|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Theory,disabled
-SICUREZZA DELLE ARCHITETTURE ORIENTATE AI SERVIZI,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/sicurezza-delle-architetture-orientate-ai-servizi,6,ITA,2,F94|FBA,B|2,INF/01,"COMPUTING SYSTEMS IN INDUSTRY, BUSINESS AND MEDICINE",Security,disabled
+Tecniche di protezione del software,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/tecniche-di-protezione-del-software-0,6,ITA,2,F94|FBA,B|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Software,enabled
+Modellazione e analisi di sistemi,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/modellazione-e-analisi-di-sistemi,6,ITA,2,F94|FBA,C|2,INF/01,"ALGORITHMS, SOFTWARE AND THEORY",Theory,disabled
+Sicurezza nelle architetture orientate ai servizi,https://www.unimi.it/it/corsi/insegnamenti-dei-corsi-di-laurea/2026/sicurezza-delle-architetture-orientate-ai-servizi,6,ITA,2,F94|FBA,B|2,INF/01,"COMPUTING SYSTEMS IN INDUSTRY, BUSINESS AND MEDICINE",Security,disabled
